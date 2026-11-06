@@ -53,6 +53,13 @@ Commit → push → Vercel redeploys.
 | Voice: push-to-talk → `api/voice` (OpenAI transcription) → allowlisted actions | ✅ Implemented — NOT VERIFIED on device |
 | Offline service worker | ⛔ Not implemented |
 
+## Google Drive setup
+- OAuth Client ID (Web) is set in `index.html` (`G_ID`); scope `drive.file` only (the app sees only files it creates).
+- Google Cloud → Client → Authorized JavaScript origins must include `https://the-15-project.vercel.app`. Google Drive API must be enabled.
+- Settings → Connect Google Drive. Data goes to `data/the15-data.json` (auto after each workout/check-in); photos to `photos/` only when switched on.
+- Because of `drive.file`, the app may not be able to open a pre-existing folder; it then creates “The 15 Project” in your Drive root.
+- Access tokens last ~1 hour and live in sessionStorage; after that, tap Sync now to sign in again. Nothing is deleted from Drive on disconnect.
+
 ## Voice setup
 - Vercel → Settings → Environment Variables: `OPENAI_API_KEY` (required), `APP_TOKEN` (recommended), `VOICE_MODEL` (optional). Redeploy after changes.
 - If `APP_TOKEN` is set, enter the same value in the app: Settings → Voice access code.

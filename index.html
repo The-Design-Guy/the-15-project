@@ -27,6 +27,7 @@ input[type=range]{accent-color:#CAF70F}
 @keyframes f15count{0%{transform:scale(1.3);opacity:0}10%{opacity:0.92}70%{opacity:0.85}100%{transform:scale(0.4);opacity:0}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
+<script src="https://accounts.google.com/gsi/client" async></script>
 </helmet>
 <div style="min-height:100dvh;overflow-x:clip;display:flex;flex-direction:column;align-items:{{ stageAlign }};background:{{ stageBg }};padding:{{ stagePad }}">
 <div role="group" aria-label="Preview mode" style="display:{{ toggleDisp }};position:fixed;bottom:16px;left:16px;z-index:100;gap:4px;background:#0D2925;border-radius:12px;padding:4px;box-shadow:0 4px 20px rgba(0,0,0,0.4)">
@@ -416,6 +417,23 @@ input[type=range]{accent-color:#CAF70F}
 <span style="font-size:12px;color:#A9ACB1;line-height:1.5">Uses your device's built-in voices. Spotify keeps playing; the count speaks over it.</span></div>
 <div style="font-size:13px;color:#A9ACB1">Units: kilograms and centimetres.</div>
 </section>
+<section aria-label="Google Drive" style="background:#0D2925;border-radius:24px;padding:24px;display:flex;flex-direction:column;gap:12px">
+<span style="font-size:13px;color:#A9ACB1;letter-spacing:1.5px;text-transform:uppercase">Google Drive backup</span>
+<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+<div style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-weight:600">{{ gd.status }}</span><span style="font-size:12px;color:#A9ACB1">{{ gd.sub }}</span></div>
+<button onClick="{{ gd.toggleConnect }}" style="border:1.5px solid #CAF70F;background:{{ gd.connBg }};color:{{ gd.connFg }};border-radius:8px;padding:0 18px;height:44px;font-size:14px;font-weight:700;cursor:pointer">{{ gd.connectLabel }}</button>
+</div>
+<sc-if value="{{ gd.hasMsg }}"><div role="status" style="font-size:13px;color:{{ gd.msgColor }};line-height:1.5">{{ gd.msg }}</div></sc-if>
+<sc-if value="{{ gd.ready }}">
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+<button onClick="{{ gd.sync }}" style="border:0;background:#CAF70F;color:#031A17;border-radius:8px;padding:0 16px;height:44px;font-size:14px;font-weight:700;cursor:pointer">Sync now</button>
+<button onClick="{{ gd.restore }}" style="border:1px solid #24433D;background:transparent;color:#FFFFFF;border-radius:8px;padding:0 16px;height:44px;font-size:14px;cursor:pointer">Restore from Drive</button>
+<a href="{{ gd.folderUrl }}" target="_blank" rel="noopener" style="display:flex;align-items:center;padding:0 8px;height:44px;font-size:14px;font-weight:600">Open folder</a>
+</div>
+<button onClick="{{ gd.togglePhotos }}" aria-pressed="{{ gd.photosOn }}" style="display:flex;justify-content:space-between;align-items:center;border:0;background:#031A17;color:#FFFFFF;border-radius:8px;padding:14px 16px;cursor:pointer;font-size:15px;min-height:52px;text-align:left;gap:12px"><span>Back up Body Timeline photos to Drive</span><span style="color:#CAF70F;font-weight:600">{{ gd.photosLabel }}</span></button>
+</sc-if>
+<div style="font-size:12px;color:#A9ACB1;line-height:1.5">Data (sessions, weight, waist, energy, settings) is saved to data/the15-data.json after each workout and check-in. Photos upload only if you switch them on. The app can only see files it created.</div>
+</section>
 <section aria-label="Data and privacy" style="background:#0D2925;border-radius:24px;padding:24px;display:flex;flex-direction:column;gap:14px">
 <span style="font-size:13px;color:#A9ACB1;letter-spacing:1.5px;text-transform:uppercase">Your data</span>
 <div style="font-size:13px;color:#A9ACB1;line-height:1.6">Everything personal lives on this device only. There is no cross-device sync. Back up regularly.</div>
@@ -699,6 +717,9 @@ const MIXQ={'POWER HOUSE':['progressive house','house workout','dance house'],'M
 const rnd=n=>{const a=new Uint8Array(n);crypto.getRandomValues(a);return Array.from(a,x=>'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'[x%62]).join('');};
 const pkce=async v=>{const d=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v));return btoa(String.fromCharCode(...new Uint8Array(d))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');};
 const plFromUrl=u=>{const m=(u||'').match(/playlist[/:]([A-Za-z0-9]+)/);return m?m[1]:'';};
+const G_ID='402889763048-9n7cguj2aqo96b7s134far1tnsnig64j.apps.googleusercontent.com';
+const G_FOLDER='1qwidAn0F9LyUDTQJiaVFaggakZxsLAWt';
+const G_SCOPE='https://www.googleapis.com/auth/drive.file';
 const LIB=Object.values(EX).filter(e=>e.cat!=='Play');
 const PROFILES={'POWER HOUSE':{dir:'House · Dance · Progressive House',bpm:'~120–128 BPM'},'MOVE FASTER':{dir:'Energetic Dance / Electronic House',bpm:'~125–140 BPM'},'CHILL MOTION':{dir:'Chill Dance / Melodic House',bpm:'~95–120 BPM'},'FEEL GOOD':{dir:'Upbeat feel-good House / Dance',bpm:'~120–130 BPM'}};
 const W={
@@ -751,7 +772,7 @@ class Component extends DCLogic {
     let settings=load('settings',null);
     if(!settings){settings={startDate:iso(monday(new Date())),level:1,sound:true,voiceLang:'auto',playlists:{}};save('settings',settings);}
     return {view:'mobile',tab:'today',w:window.innerWidth,settings,history:load('history',[]),weights:load('weights',[]),favs:load('favs',[]),notes:load('notes',{}),overrides:load('overrides',{}),dismissed:load('dismissed',''),run:load('run',null),
-      exId:null,rcId:null,imgPop:null,menu:false,rec:'idle',recMsg:'',sp:load('sp',null),spState:null,spPlaylists:[],spDevices:[],spMsg:'',mix:null,mixlog:load('mixlog',{}),playerHidden:!!load('run',null),planOpen:null,fuelCat:'All',fuelQ:'',photos:[],cmpA:'',cmpB:'',cmpPos:50,tl:false,tlIdx:0,sheet:null,voiceText:'',voiceMsg:'',fb:{rpe:null,tech:null},
+      exId:null,rcId:null,imgPop:null,menu:false,gd:load('gd',{}),gdTok:(()=>{try{const t=JSON.parse(sessionStorage.getItem('f15.gtok'));return t&&t.exp>Date.now()?t:null;}catch(e){return null}})(),gdMsg:'',gdBusy:false,rec:'idle',recMsg:'',sp:load('sp',null),spState:null,spPlaylists:[],spDevices:[],spMsg:'',mix:null,mixlog:load('mixlog',{}),playerHidden:!!load('run',null),planOpen:null,fuelCat:'All',fuelQ:'',photos:[],cmpA:'',cmpB:'',cmpPos:50,tl:false,tlIdx:0,sheet:null,voiceText:'',voiceMsg:'',fb:{rpe:null,tech:null},
       wForm:{date:iso(new Date()),kg:'',waist:'',energy:''},pose:'Front',toast:''};
   })();
   componentDidMount(){
@@ -850,6 +871,51 @@ class Component extends DCLogic {
       if(!j.text){this.setState({rec:'idle',recMsg:'Didn\u2019t catch that. Try again.'});return;}
       this.setState({rec:'idle',recMsg:''});this.runVoice(j.text);
     }catch(e){this.setState({rec:'idle',recMsg:e.message||'Voice request failed.'});}}
+  gdSet(p){this.persist('gd',Object.assign({},this.state.gd,p));}
+  gdAuth(prompt){return new Promise((res,rej)=>{if(!window.google||!google.accounts||!google.accounts.oauth2){rej(new Error('Google sign-in is still loading. Try again in a moment.'));return;}
+    const c=google.accounts.oauth2.initTokenClient({client_id:G_ID,scope:G_SCOPE,callback:r=>{if(r.error){rej(new Error(r.error_description||r.error));return;}const t={access:r.access_token,exp:Date.now()+(r.expires_in||3600)*1000};sessionStorage.setItem('f15.gtok',JSON.stringify(t));this.setState({gdTok:t});res(t.access);},error_callback:e=>rej(new Error(e&&e.type==='popup_closed'?'Sign-in window was closed.':'Google sign-in failed.'))});
+    c.requestAccessToken({prompt:prompt||''});});}
+  async gdToken(interactive){const t=this.state.gdTok;if(t&&t.exp>Date.now()+60000)return t.access;if(!interactive)throw Object.assign(new Error('Google sign-in expired. Tap Sync now to sign in again.'),{code:'auth'});return this.gdAuth('');}
+  async gdFetch(url,opts,interactive){if(!navigator.onLine)throw new Error('You\u2019re offline. Drive sync will retry later.');const tk=await this.gdToken(interactive);
+    const r=await fetch(url,Object.assign({},opts,{headers:Object.assign({Authorization:'Bearer '+tk},(opts&&opts.headers)||{})}));
+    if(r.status===204)return null;const j=await r.json().catch(()=>null);
+    if(!r.ok){const er=(j&&j.error)||{};const reason=(er.errors&&er.errors[0]&&er.errors[0].reason)||er.status||'';
+      if(r.status===401){sessionStorage.removeItem('f15.gtok');this.setState({gdTok:null});throw Object.assign(new Error('Google sign-in expired. Tap Sync now to sign in again.'),{code:'auth'});}
+      if(/accessNotConfigured|SERVICE_DISABLED/i.test(reason+' '+(er.message||'')))throw new Error('Google Drive API isn\u2019t enabled for this project. Enable it at console.cloud.google.com/apis/library/drive.googleapis.com, then try again.');
+      if(r.status===404)throw Object.assign(new Error('Not found'),{code:404});
+      throw new Error('Drive error '+r.status+(er.message?': '+er.message:''));}
+    return j;}
+  async gdFolder(name,parent,interactive){const q="mimeType='application/vnd.google-apps.folder' and trashed=false and name='"+name+"'"+(parent?" and '"+parent+"' in parents":" and 'root' in parents");
+    const l=await this.gdFetch('https://www.googleapis.com/drive/v3/files?fields=files(id)&q='+encodeURIComponent(q),{},interactive);if(l&&l.files&&l.files[0])return l.files[0].id;
+    const c=await this.gdFetch('https://www.googleapis.com/drive/v3/files?fields=id',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,mimeType:'application/vnd.google-apps.folder',parents:parent?[parent]:undefined})},interactive);return c.id;}
+  async gdEnsure(interactive){const g=this.state.gd;if(g.root&&g.data&&g.photos)return g;let root=null,own=false;
+    try{const fo=await this.gdFetch('https://www.googleapis.com/drive/v3/files/'+G_FOLDER+'?fields=id,mimeType',{},interactive);if(fo&&fo.id)root=fo.id;}catch(e){if(e.code==='auth'||/enabled/.test(e.message))throw e;}
+    if(!root){root=await this.gdFolder('The 15 Project',null,interactive);own=true;}
+    const data=await this.gdFolder('data',root,interactive),photos=await this.gdFolder('photos',root,interactive);
+    this.gdSet({root,data,photos,own});return Object.assign({},this.state.gd,{root,data,photos,own});}
+  async gdUpload({id,name,parents,mime,body},interactive){const b='f15'+Date.now();const meta=id?{}:{name,parents};
+    const blob=new Blob(['--'+b+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'+JSON.stringify(meta)+'\r\n--'+b+'\r\nContent-Type: '+mime+'\r\n\r\n',body,'\r\n--'+b+'--']);
+    return this.gdFetch('https://www.googleapis.com/upload/drive/v3/files'+(id?'/'+id:'')+'?uploadType=multipart&fields=id',{method:id?'PATCH':'POST',headers:{'Content-Type':'multipart/related; boundary='+b},body:blob},interactive);}
+  snapshot(){const s=this.state;return {app:'the-15-project',schema:1,exportedAt:new Date().toISOString(),settings:s.settings,history:s.history,weights:s.weights,favs:s.favs,notes:s.notes,overrides:s.overrides,mixlog:s.mixlog};}
+  async gdConnect(){this.setState({gdBusy:true,gdMsg:'Connecting…'});try{await this.gdAuth('consent');const g=await this.gdEnsure(true);this.gdSet({connected:true});
+      this.setState({gdMsg:g.own?'Couldn\u2019t open your linked folder with the limited permission, so a \u201CThe 15 Project\u201D folder was created in your Drive instead.':''});await this.gdSync(true);}
+    catch(e){this.setState({gdMsg:e.message});}finally{this.setState({gdBusy:false});}}
+  gdDisconnect(){try{const t=this.state.gdTok;if(t&&window.google)google.accounts.oauth2.revoke(t.access,()=>{});}catch(e){}sessionStorage.removeItem('f15.gtok');this.persist('gd',{});this.setState({gdTok:null,gdMsg:'Disconnected. Files already in Drive were not deleted.'});}
+  async gdSync(interactive){const g0=this.state.gd;if(!g0.connected&&!interactive)return;try{const g=await this.gdEnsure(interactive);
+      const r=await this.gdUpload({id:g.dataFile,name:'the15-data.json',parents:[g.data],mime:'application/json',body:JSON.stringify(this.snapshot(),null,2)},interactive).catch(async e=>{if(e.code===404&&g.dataFile){this.gdSet({dataFile:null});return this.gdUpload({name:'the15-data.json',parents:[g.data],mime:'application/json',body:JSON.stringify(this.snapshot(),null,2)},interactive);}throw e;});
+      this.gdSet({dataFile:r.id,lastSync:Date.now(),pending:false});if(this.state.gd.photosOn)await this.gdPhotos(interactive);this.setState({gdMsg:interactive?'Synced.':this.state.gdMsg});}
+    catch(e){this.gdSet({pending:true});this.setState({gdMsg:e.message});}}
+  gdAuto(){if(!this.state.gd.connected)return;clearTimeout(this._gdT);this._gdT=setTimeout(()=>this.gdSync(false),1500);}
+  async gdPhotos(interactive){const g=this.state.gd;const map=Object.assign({},g.photoMap||{});let n=0;
+    for(const p of this.state.photos){if(map[p.id])continue;const ext=((p.blob&&p.blob.type)||'image/jpeg').split('/')[1]||'jpg';
+      const r=await this.gdUpload({name:'the15-'+p.date+'-'+String(p.pose).toLowerCase()+'-'+p.id+'.'+ext,parents:[g.photos],mime:p.blob.type||'image/jpeg',body:p.blob},interactive);map[p.id]=r.id;n++;this.gdSet({photoMap:map});}
+    return n;}
+  async gdRestore(){if(!window.confirm('Replace the data on this device with the backup from Google Drive?'))return;this.setState({gdBusy:true,gdMsg:'Restoring…'});
+    try{const g=await this.gdEnsure(true);let id=g.dataFile;if(!id){const l=await this.gdFetch('https://www.googleapis.com/drive/v3/files?fields=files(id)&q='+encodeURIComponent("name='the15-data.json' and trashed=false and '"+g.data+"' in parents"),{},true);id=l&&l.files&&l.files[0]&&l.files[0].id;}
+      if(!id)throw new Error('No backup found in Drive yet.');const tk=await this.gdToken(true);const r=await fetch('https://www.googleapis.com/drive/v3/files/'+id+'?alt=media',{headers:{Authorization:'Bearer '+tk}});const d=await r.json();
+      if(d.app!=='the-15-project'||d.schema!==1||!Array.isArray(d.history)||!Array.isArray(d.weights))throw new Error('The Drive backup file isn\u2019t valid.');
+      ['settings','history','weights','favs','notes','overrides','mixlog'].forEach(k=>{if(d[k]!==undefined)this.persist(k,d[k]);});this.gdSet({dataFile:id});this.setState({gdMsg:'Restored from Drive ('+new Date(d.exportedAt).toLocaleString('en-GB')+').'});}
+    catch(e){this.setState({gdMsg:e.message});}finally{this.setState({gdBusy:false});}}
   say(n){const v=this.state.settings.cdVoice||'off';if(v==='off'||!window.speechSynthesis)return;const words=['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten'];
     try{const u=new SpeechSynthesisUtterance(words[n]);u.lang='en-US';u.rate=1.15;const vs=speechSynthesis.getVoices().filter(x=>/^en/i.test(x.lang));
     const fem=/female|samantha|victoria|karen|zira|susan|moira|tessa|fiona|serena|aria|jenny|libby|sonia|google us english/i,mal=/male|daniel|alex|david|fred|george|mark|guy|ryan|thomas|oliver|arthur|google uk english male/i;
@@ -881,7 +947,7 @@ class Component extends DCLogic {
   saveSession(){const r=this.state.run,fb=this.state.fb;
     if(!fb.rpe){this.flash('Pick an effort rating first.');return;}
     const h=this.state.history.concat([{id:Date.now(),date:iso(new Date()),wid:r.wid,kind:r.kind,level:r.level,rpe:fb.rpe,tech:fb.tech,secs:Math.round(Math.min(this.el(r),this.total(r))),complete:!r.early,schema:1}]);
-    this.persist('history',h);localStorage.removeItem(P+'run');this.setState({run:null,dismissed:''});save('dismissed','');this.flash('Session saved.');}
+    this.persist('history',h);setTimeout(()=>this.gdAuto(),0);localStorage.removeItem(P+'run');this.setState({run:null,dismissed:''});save('dismissed','');this.flash('Session saved.');}
   discardSession(){localStorage.removeItem(P+'run');this.setState({run:null});}
   // ---- voice dispatcher (allowlist)
   runVoice(text){
@@ -909,7 +975,7 @@ class Component extends DCLogic {
     const photos=all.sort((a,b)=>a.ts-b.ts).map(p=>Object.assign({},p,{url:URL.createObjectURL(p.blob)}));
     this.setState(s=>({photos,cmpA:photos.some(p=>p.id===s.cmpA)?s.cmpA:(photos[0]?photos[0].id:''),cmpB:photos.some(p=>p.id===s.cmpB)?s.cmpB:(photos.length?photos[photos.length-1].id:'')}));}catch(e){}}
   async addPhoto(e){const f=e.target.files&&e.target.files[0];if(!f)return;if(!/^image\//.test(f.type)){this.flash('Please choose an image.');return;}
-    const now=new Date();await store('put',{id:'p'+now.getTime(),ts:now.getTime(),date:iso(now),pose:this.state.pose,blob:f});e.target.value='';this.flash('Photo saved to this device.');this.loadPhotos();}
+    const now=new Date();await store('put',{id:'p'+now.getTime(),ts:now.getTime(),date:iso(now),pose:this.state.pose,blob:f});e.target.value='';this.flash('Photo saved to this device.');await this.loadPhotos();if(this.state.gd.connected&&this.state.gd.photosOn)this.gdAuto();}
   // ---- data
   exportData(){const s=this.state;const data={app:'the-15-project',schema:1,exportedAt:new Date().toISOString(),settings:s.settings,history:s.history,weights:s.weights,favs:s.favs,notes:s.notes,overrides:s.overrides};
     const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.download='the15-backup-'+iso(new Date())+'.json';a.click();this.flash('Backup downloaded.');}
@@ -1041,7 +1107,7 @@ class Component extends DCLogic {
     const mix=mx?{name:mx.k,note:mx.loading?'Searching Spotify…':(mx.items.length?'From a Spotify search for \u201C'+mx.q+'\u201D. Tap tracks to select, then add. Tracks already in the playlist are hidden.':'No new tracks found this time. Try New suggestions.'),
       items:mx.items.map(t=>{const on=!!mx.sel[t.uri];return {name:t.name,artist:t.artist,art:t.art?'url("'+t.art+'")':'none',on,border:on?L:'#24433D',mark:on?'✓ Selected':'',toggle:()=>this.setState(x=>({mix:Object.assign({},x.mix,{sel:Object.assign({},x.mix.sel,{[t.uri]:!on})})}))};}),
       addOff:!mixSel,addLabel:mixSel?'Add '+mixSel+' to playlist':'Select tracks to add',add:()=>this.spMixAdd(),again:()=>this.spMix(mx.k)}:{items:[]};
-    const statusRows=[['15-min player, Quick 5, history','Working',L],['Plan, rescheduling, adaptation','Working',L],['Body Timeline (local photos)','Working',L],['Backup / restore','Working',L],['Spotify connect & control',s.sp?'Connected · NOT VERIFIED on device':'Ready · connect in Music · NOT VERIFIED',s.sp?S:M],['OpenAI voice transcription','api/voice · NOT VERIFIED',S],['Voice command dispatcher','Working (typed)',S],['Offline / install (PWA)','In production build · NOT VERIFIED',M]].map(([l,v,c])=>({l,v,c}));
+    const statusRows=[['15-min player, Quick 5, history','Working',L],['Plan, rescheduling, adaptation','Working',L],['Body Timeline (local photos)','Working',L],['Backup / restore','Working',L],['Google Drive sync',s.gd&&s.gd.connected?'Connected · NOT VERIFIED':'Ready · NOT VERIFIED',S],['Spotify connect & control',s.sp?'Connected · NOT VERIFIED on device':'Ready · connect in Music · NOT VERIFIED',s.sp?S:M],['OpenAI voice transcription','api/voice · NOT VERIFIED',S],['Voice command dispatcher','Working (typed)',S],['Offline / install (PWA)','In production build · NOT VERIFIED',M]].map(([l,v,c])=>({l,v,c}));
     const voiceExamples=(r&&!r.done?['How much time is left?','Pause workout','Next exercise','This is too hard','השיר הבא']:['Start workout','Quick five','התחל אימון','Next song']).map(t=>({t,run:()=>this.runVoice(t)}));
     const viewOpts=[['mobile','Mobile'],['desktop','Desktop']].map(([v,l])=>({l,on:s.view===v,bg:s.view===v?L:'transparent',fg:s.view===v?BG:T,pick:()=>{this.setState({view:v});setTimeout(()=>this.scrollTop(0),0);}}));
     const cdN=p.show&&p.running?p.cdN:0;const rm=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1051,7 +1117,13 @@ class Component extends DCLogic {
     const gN=mob?6:12;
     const resumeChevrons=React.createElement('span',{'aria-hidden':true,style:{display:'flex',gap:0,marginLeft:-4}},[0,1,2].map(k=>React.createElement('img',{key:k,src:'icons/chevron-right.svg',alt:'',style:{display:'block',width:18,height:18,marginRight:-4,opacity:rm?1:.2,animation:rm?'none':'f15chev 1.2s ease-in-out '+(k*0.2)+'s infinite'}})));
     const vc={label:s.rec==='rec'?'Tap to send':(s.rec==='busy'?'Working…':'Tap to talk'),bg:s.rec==='rec'?'#FF3939':(s.rec==='busy'?'#A9ACB1':L),toggle:()=>s.rec==='rec'?this.recStop():this.recStart(),status:s.recMsg,stColor:/denied|error|fail|wrong|not found|offline|supported|Too many/i.test(s.recMsg)?'#FF3939':M};
-    return {vc,setVoiceToken:e=>this.setSettings({voiceToken:e.target.value.trim()}),sp,mix,mixShow:!!s.mix,closeMix:()=>this.setState({mix:null}),toggleDisp:phone?'none':'flex',resumeChevrons,startBg:s.run?'transparent':L,startFg:s.run?L:BG,pBarPad:mob?'12px 18px calc(12px + env(safe-area-inset-bottom))':'12px clamp(12px,3vw,32px) calc(12px + env(safe-area-inset-bottom))',pBarCols:mob?'repeat(6,minmax(0,1fr))':'minmax(0,1fr) 64px',pMusicCol:mob?'1 / 6':'1 / 2',pMicCol:mob?'6 / 7':'2 / 3',sheetPadX:mob?'18px':'24px',gridDisplay:this.props.showGrid===true?'block':'none',gridCount:gN,gridCols:Array.from({length:gN},(_,i)=>String(i+1)),gridLeft:wide?'232px':'0',gridMaxW:mob?'none':'1180px',gridMargin:mob?'18px':'clamp(20px,4vw,48px)',gridGutter:mob?'16px':'24px',countdownEl,cdVoiceOpts,testVoice:()=>{[3,2,1].forEach((n,i)=>setTimeout(()=>this.say(n),i*900));},pBodyPad:mob?'18px':'clamp(16px,3vw,36px)',img,closeImg:()=>this.setState({imgPop:null}),viewOpts,frameRef:this.frame,stageBg:framed?'#000000':'#031A17',stageAlign:framed?'center':'stretch',stagePad:framed?'68px 16px 20px':'0',frameW:framed?'390px':'100%',frameH:framed?'min(844px, calc(100vh - 88px))':(mob?'100dvh':'auto'),frameMinH:(framed||phone)?'0':'100vh',frameOverflow:mob?'hidden':'visible',mainOverflow:mob?'auto':'visible',mainH:mob?'100%':'auto',frameRadius:framed?'44px':'0',frameBorder:framed?'8px solid #0D2925':'0',playerHeadPad:mob?'14px 18px':'16px 220px 16px clamp(16px,3vw,32px)',mainPad:mob?'0 18px calc(78px + env(safe-area-inset-bottom))':'clamp(20px,4vw,48px) clamp(20px,4vw,48px) 120px',h1Size:mob?'60px':'clamp(56px,9vw,88px)',cardTitle:mob?'56px':'clamp(64px,10vw,104px)',cardPad:mob?'20px':'clamp(20px,3vw,32px)',pNameSize:mob?'52px':'clamp(56px,8vw,88px)',pClockSize:mob?'100px':'clamp(120px,20vw,190px)',pImgH:mob?'280px':'min(72vh,720px)',isWide:wide,notWide:!wide,navItems,headerKicker:kick,headerTitle:title,suggestion,
+    const gdS=s.gd||{};const gd={ready:!!gdS.connected,hasMsg:!!s.gdMsg,msg:s.gdMsg,msgColor:/error|expired|isn|fail|offline|closed|couldn|No backup/i.test(s.gdMsg)?'#FF3939':M,
+      status:gdS.connected?(gdS.own?'Connected · The 15 Project folder':'Connected · your linked folder'):'Not connected',
+      sub:gdS.connected?(gdS.lastSync?'Last synced '+new Date(gdS.lastSync).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'Not synced yet')+(gdS.pending?' · changes waiting':''):'Back up your data to Google Drive',
+      connectLabel:s.gdBusy?'Working…':(gdS.connected?'Disconnect':'Connect Google Drive'),connBg:gdS.connected?'transparent':L,connFg:gdS.connected?L:BG,
+      toggleConnect:()=>{if(s.gdBusy)return;gdS.connected?this.gdDisconnect():this.gdConnect();},sync:()=>this.gdSync(true),restore:()=>this.gdRestore(),
+      folderUrl:'https://drive.google.com/drive/folders/'+(gdS.root||G_FOLDER),photosOn:!!gdS.photosOn,photosLabel:gdS.photosOn?'On':'Off',togglePhotos:()=>{this.gdSet({photosOn:!gdS.photosOn});if(!gdS.photosOn)setTimeout(()=>this.gdSync(true),0);}};
+    return {gd,vc,setVoiceToken:e=>this.setSettings({voiceToken:e.target.value.trim()}),sp,mix,mixShow:!!s.mix,closeMix:()=>this.setState({mix:null}),toggleDisp:phone?'none':'flex',resumeChevrons,startBg:s.run?'transparent':L,startFg:s.run?L:BG,pBarPad:mob?'12px 18px calc(12px + env(safe-area-inset-bottom))':'12px clamp(12px,3vw,32px) calc(12px + env(safe-area-inset-bottom))',pBarCols:mob?'repeat(6,minmax(0,1fr))':'minmax(0,1fr) 64px',pMusicCol:mob?'1 / 6':'1 / 2',pMicCol:mob?'6 / 7':'2 / 3',sheetPadX:mob?'18px':'24px',gridDisplay:this.props.showGrid===true?'block':'none',gridCount:gN,gridCols:Array.from({length:gN},(_,i)=>String(i+1)),gridLeft:wide?'232px':'0',gridMaxW:mob?'none':'1180px',gridMargin:mob?'18px':'clamp(20px,4vw,48px)',gridGutter:mob?'16px':'24px',countdownEl,cdVoiceOpts,testVoice:()=>{[3,2,1].forEach((n,i)=>setTimeout(()=>this.say(n),i*900));},pBodyPad:mob?'18px':'clamp(16px,3vw,36px)',img,closeImg:()=>this.setState({imgPop:null}),viewOpts,frameRef:this.frame,stageBg:framed?'#000000':'#031A17',stageAlign:framed?'center':'stretch',stagePad:framed?'68px 16px 20px':'0',frameW:framed?'390px':'100%',frameH:framed?'min(844px, calc(100vh - 88px))':(mob?'100dvh':'auto'),frameMinH:(framed||phone)?'0':'100vh',frameOverflow:mob?'hidden':'visible',mainOverflow:mob?'auto':'visible',mainH:mob?'100%':'auto',frameRadius:framed?'44px':'0',frameBorder:framed?'8px solid #0D2925':'0',playerHeadPad:mob?'14px 18px':'16px 220px 16px clamp(16px,3vw,32px)',mainPad:mob?'0 18px calc(78px + env(safe-area-inset-bottom))':'clamp(20px,4vw,48px) clamp(20px,4vw,48px) 120px',h1Size:mob?'60px':'clamp(56px,9vw,88px)',cardTitle:mob?'56px':'clamp(64px,10vw,104px)',cardPad:mob?'20px':'clamp(20px,3vw,32px)',pNameSize:mob?'52px':'clamp(56px,8vw,88px)',pClockSize:mob?'100px':'clamp(120px,20vw,190px)',pImgH:mob?'280px':'min(72vh,720px)',isWide:wide,notWide:!wide,navItems,headerKicker:kick,headerTitle:title,suggestion,
       tabToday:s.tab==='today',tabPlan:s.tab==='plan',tabProgress:s.tab==='progress',tabFuel:s.tab==='fuel',tabSettings:s.tab==='settings',tabWorkout:s.tab==='workout',showResume:!!r&&s.playerHidden,resumeMeta:r?W[r.wid].name+(r.done?' · ready to log':' · '+fmt(this.total(r)-this.el(r))+' left'+(r.pausedAt?' · paused':'')):'',showPlayer:()=>this.setState({playerHidden:false}),hidePlayer:()=>this.setState({playerHidden:true,sheet:null}),mobNav,menuOpen:s.menu,toggleMenu:()=>this.setState(x=>({menu:!x.menu})),closeMenu:()=>this.setState({menu:false}),menuTransform:s.menu?'translateY(0)':'translateY(-105%)',menuVis:s.menu?'visible':'hidden',menuBackdropOp:s.menu?1:0,menuPE:s.menu?'auto':'none',tabMusic:s.tab==='music',topNav,
       workoutCards:['A','B','C','CARDIO','MOB','EMMA','Q5'].map(k=>{const w=W[k],isT=k===twid;return {name:w.name,sub:w.sub,profile:w.profile,tag:isT?'TODAY':'',border:isT?'1px solid '+S:'1px solid transparent',btnBg:isT&&!s.run?L:'transparent',btnFg:isT&&!s.run?BG:(s.run?L:T),btnBorder:s.run||isT?L:'#24433D',
         timing:k==='Q5'?'5:00 · 3 exercises':k==='EMMA'?'15:00 · play':'15:00 · 5 × 2',exList:w.ex.map(id=>EX[id].name).join(' · '),start:()=>this.start(k)};}),
@@ -1062,7 +1134,7 @@ class Component extends DCLogic {
       stats,wForm:s.wForm,wSet,weightRows,historyRows,noHistory:s.history.length===0,
       saveWeight:()=>{const f=s.wForm,kg=parseFloat(f.kg);if(!(kg>30&&kg<300)){this.flash('Enter a weight in kg.');return;}
         const e={id:Date.now(),date:f.date||todayIso,kg:Math.round(kg*10)/10,waist:f.waist?parseFloat(f.waist):null,energy:f.energy?Math.min(5,Math.max(1,parseInt(f.energy))):null};
-        this.persist('weights',s.weights.concat([e]));this.setState({wForm:{date:todayIso,kg:'',waist:'',energy:''}});this.flash('Check-in saved.');},
+        this.persist('weights',s.weights.concat([e]));setTimeout(()=>this.gdAuto(),0);this.setState({wForm:{date:todayIso,kg:'',waist:'',energy:''}});this.flash('Check-in saved.');},
       pose:s.pose,poseOpts,addPhoto:e=>this.addPhoto(e),photoRows,hasPhotos:s.photos.length>0,canCompare:s.photos.length>=2,photoOpts,cmpA:s.cmpA,cmpB:s.cmpB,cmpPos:s.cmpPos,
       setCmpA:e=>this.setState({cmpA:e.target.value}),setCmpB:e=>this.setState({cmpB:e.target.value}),setCmpPos:e=>this.setState({cmpPos:+e.target.value}),
       cmpABg:pa?'url("'+pa.url+'")':'none',cmpBBg:pb?'url("'+pb.url+'")':'none',cmpClip:'inset(0 '+(100-s.cmpPos)+'% 0 0)',cmpLeft:s.cmpPos+'%',
