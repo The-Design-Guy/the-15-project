@@ -1,0 +1,22 @@
+{
+  "name": "The 15 Project",
+  "short_name": "The 15",
+  "description": "15 minutes. Stronger every day.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#031A17",
+  "theme_color": "#031A17",
+  "icons": [
+    {
+      "src": "brand/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "brand/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
