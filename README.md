@@ -49,13 +49,21 @@ Commit → push → Vercel redeploys.
 | Backup export / import, delete all data | ✅ Working |
 | Fuel: browse, search, filter, favorites, notes | ✅ Working (draft content) |
 | Voice command dispatcher (typed commands, EN/HE allowlist) | ✅ Working |
-| Spotify connect + playback control (PKCE) | ⛔ Not implemented — NOT VERIFIED |
+| Spotify connect (PKCE), playlists per profile, play/pause/next/prev/shuffle, devices, add current track, Refresh Mix with approval | ✅ Implemented — NOT VERIFIED on a real device |
 | OpenAI speech-to-text endpoint | ⛔ Not implemented — NOT VERIFIED |
 | Offline service worker | ⛔ Not implemented |
 
+## Spotify setup
+- Client ID is set in `index.html` (`SP_ID`). No client secret is used (Authorization Code + PKCE).
+- Spotify dashboard → Redirect URI: `https://the-15-project.vercel.app/callback` (handled by the rewrite in `vercel.json`).
+- Add your Spotify account under **User Management** (Development Mode: max 5 users, owner needs Premium).
+- Scopes: playback state/control, currently playing, playlist read/modify.
+- Tokens are stored in this browser's localStorage. Use **Disconnect** in Music to clear them.
+- Playback happens in the Spotify app on an active device; the web app only controls it.
+- Recommendations / audio-features are not available to new apps, so BPM is creative direction only and Refresh Mix uses search + your approval.
+
 ## Roadmap
 1. `api/voice` Vercel function: audio → OpenAI transcription → allowlisted intent JSON (rate-limited, key in `OPENAI_API_KEY`).
-2. Spotify Authorization Code + PKCE, playlist mapping, playback controls, Refresh Mix with user approval.
 3. Service worker for offline timer.
 4. Missing images: Standing Knee Drives, Incline Mountain Climbers.
 
