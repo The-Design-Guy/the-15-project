@@ -50,8 +50,14 @@ Commit → push → Vercel redeploys.
 | Fuel: browse, search, filter, favorites, notes | ✅ Working (draft content) |
 | Voice command dispatcher (typed commands, EN/HE allowlist) | ✅ Working |
 | Spotify connect (PKCE), playlists per profile, play/pause/next/prev/shuffle, devices, add current track, Refresh Mix with approval | ✅ Implemented — NOT VERIFIED on a real device |
-| OpenAI speech-to-text endpoint | ⛔ Not implemented — NOT VERIFIED |
+| Voice: push-to-talk → `api/voice` (OpenAI transcription) → allowlisted actions | ✅ Implemented — NOT VERIFIED on device |
 | Offline service worker | ⛔ Not implemented |
+
+## Voice setup
+- Vercel → Settings → Environment Variables: `OPENAI_API_KEY` (required), `APP_TOKEN` (recommended), `VOICE_MODEL` (optional). Redeploy after changes.
+- If `APP_TOKEN` is set, enter the same value in the app: Settings → Voice access code.
+- Flow: mic (max 8 s) → `/api/voice` → transcript → the app maps it to an allowlisted action. Audio and text are not stored. Unknown phrases do nothing.
+- Basic abuse protection: size/type limits, per-instance rate limit, optional shared code. For stronger protection add Vercel Firewall rate limiting.
 
 ## Spotify setup
 - Client ID is set in `index.html` (`SP_ID`). No client secret is used (Authorization Code + PKCE).
@@ -63,7 +69,6 @@ Commit → push → Vercel redeploys.
 - Recommendations / audio-features are not available to new apps, so BPM is creative direction only and Refresh Mix uses search + your approval.
 
 ## Roadmap
-1. `api/voice` Vercel function: audio → OpenAI transcription → allowlisted intent JSON (rate-limited, key in `OPENAI_API_KEY`).
 3. Service worker for offline timer.
 4. Missing images: Standing Knee Drives, Incline Mountain Climbers.
 
