@@ -518,12 +518,12 @@ input[type=range]{accent-color:#CAF70F}
 </sc-if>
 
 <sc-if value="{{ camUi.show }}">
-<div role="dialog" aria-modal="true" aria-label="Progress photos" style="position:fixed;inset:0;z-index:90;background:#000000;color:#FFFFFF;display:flex;flex-direction:column;overflow:hidden">
+<div role="dialog" aria-modal="true" aria-label="Progress photos" style="position:fixed;inset:0;z-index:90;background:#000000;color:#FFFFFF;display:flex;flex-direction:column;overflow:hidden;text-shadow:0 1px 3px rgba(0,0,0,0.55)">
 <sc-if value="{{ camUi.shooting }}">
 <div style="position:absolute;inset:0;z-index:0;overflow:hidden;background:#0B0B0B">
 <video ref="{{ camUi.videoRef }}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:{{ camUi.mirror }};display:{{ camUi.videoDisp }}"></video>
 <sc-if value="{{ camUi.hasPending }}"><div role="img" aria-label="Captured photo" style="position:absolute;inset:0;background-color:#000;background-image:{{ camUi.pendingBg }};background-size:cover;background-position:center"></div><div aria-hidden="true" style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0.6) 0%,rgba(0,0,0,0) 22%,rgba(0,0,0,0) 72%,rgba(0,0,0,0.7) 100%)"></div></sc-if>
-<sc-if value="{{ camUi.showGuide }}"><div aria-hidden="true" style="position:absolute;inset:0;background:#FFFFFF;-webkit-mask-image:{{ camUi.maskImg }};mask-image:{{ camUi.maskImg }};-webkit-mask-size:auto 74%,100% 100%;mask-size:auto 74%,100% 100%;-webkit-mask-position:50% 52%,0 0;mask-position:50% 52%,0 0;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none"></div></sc-if>
+<sc-if value="{{ camUi.showGuide }}"><div aria-hidden="true" style="position:absolute;inset:0;background:rgba(255,255,255,0.2);-webkit-mask-image:{{ camUi.maskImg }};mask-image:{{ camUi.maskImg }};-webkit-mask-size:auto 74%,100% 100%;mask-size:auto 74%,100% 100%;-webkit-mask-position:50% calc(52% - 10px),0 0;mask-position:50% calc(52% - 10px),0 0;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none"></div></sc-if>
 <sc-if value="{{ camUi.hasErr }}"><div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px;text-align:center"><span style="font-size:15px;line-height:1.5;color:#E5E7EB;max-width:320px">{{ camUi.err }}</span>
 <label style="position:relative;border:1.5px solid #CAF70F;color:#CAF70F;border-radius:8px;padding:0 18px;height:48px;display:flex;align-items:center;font-weight:700;font-size:14px;cursor:pointer">Use phone camera / choose file<input type="file" accept="image/*" capture="{{ camUi.captureAttr }}" onChange="{{ camUi.pickFile }}" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none"></label></div></sc-if>
 <sc-if value="{{ camUi.counting }}"><div aria-live="assertive" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none"><span style="font-family:'Barlow Condensed';font-style:italic;font-weight:800;font-size:200px;line-height:1;color:#CAF70F;text-shadow:0 4px 24px rgba(0,0,0,0.6)">{{ camUi.count }}</span></div></sc-if>
@@ -1420,15 +1420,15 @@ class Component extends DCLogic {
     const setTabs=[['program','Program'],['profile','Profile']].map(([k,l])=>{const on=s.setTab===k;return {l,on,fg:on?L:M,line:on?L:'transparent',pick:()=>this.setState({setTab:k})};});
     const cm=s.cam;const POSES=['Front','Side','Back'];const camVals=cm?(()=>{const st=cm.step;const shooting=st<3,pend=!!cm.pending;
       const FEEL=[[1,'Drained'],[2,'Low'],[3,'OK'],[4,'Good'],[5,'Great']];
-      const guide=!pend&&!cm.err&&st<3;const ink=guide?'#161616':'#FFFFFF';
-      return {show:true,shooting,ink,sub:guide?'#4A4A4A':'#A9ACB1',maskImg:'url("brand/camera-'+POSES[Math.min(st,2)].toLowerCase()+'-man.svg"), linear-gradient(#000,#000)',review:st===3,details:st===4,kicker:st<3?'Step '+(st+1)+' of 3':(st===3?'Review':'Check-in'),title:st<3?POSES[st]:(st===3?'Your photos':'Weight & feeling'),
-        steps:POSES.map((l,i)=>{const done=!!cm.shots[i];const cur=i===st;return {l,bar:done?(guide?'#161616':L):(cur?ink:(guide?'#CFCFCF':'#2E2E2E')),fg:done?(guide?'#161616':L):(cur?ink:(guide?'#8A8A8A':'#6B6F75'))};}),
+      const guide=!pend&&!cm.err&&st<3;const ink='#FFFFFF';
+      return {show:true,shooting,ink,sub:'#E5E7EB',maskImg:'url("brand/camera-'+POSES[Math.min(st,2)].toLowerCase()+'-man.svg"), linear-gradient(#000,#000)',review:st===3,details:st===4,kicker:st<3?'Step '+(st+1)+' of 3':(st===3?'Review':'Check-in'),title:st<3?POSES[st]:(st===3?'Your photos':'Weight & feeling'),
+        steps:POSES.map((l,i)=>{const done=!!cm.shots[i];const cur=i===st;return {l,bar:done?L:(cur?ink:'rgba(255,255,255,0.35)'),fg:done?L:(cur?ink:'rgba(255,255,255,0.7)')};}),
         videoRef:el=>{this._camVid=el;this.camAttach();},mirror:cm.facing==='user'?'scaleX(-1)':'none',videoDisp:pend||cm.err?'none':'block',
         hasPending:pend,pendingBg:pend?'url("'+cm.pending.url+'")':'none',live:!pend,showGuide:!pend&&!cm.err&&st<3,sil:'brand/camera-'+POSES[Math.min(st,2)].toLowerCase()+'-man.svg',
         hasErr:!!cm.err&&!pend,err:cm.err,captureAttr:cm.facing==='user'?'user':'environment',pickFile:e=>this.camPick(e),
         counting:!!cm.count,count:cm.count,shootOff:!!cm.err||!!cm.count,shutterBg:cm.count?'#6B6F75':L,
         hint:cm.err&&!pend?'':pend?'Happy with it? Approve, or retake.':(st===1?'Turn to your side. Line up with the outline, arms relaxed.':(st===2?'Turn your back to the camera. Line up with the outline.':'Stand facing the camera. Line up with the outline. Phone at chest height, about 2 m away.')),
-        timerLabel:cm.timer?cm.timer+'s':'Off',timerFg:guide?'#161616':(cm.timer?L:'#A9ACB1'),timerAria:'Self-timer: '+(cm.timer?cm.timer+' seconds':'off'),cycleTimer:()=>this.camSet({timer:cm.timer===0?5:(cm.timer===5?10:0)}),
+        timerLabel:cm.timer?cm.timer+'s':'Off',timerFg:cm.timer?L:'#E5E7EB',timerAria:'Self-timer: '+(cm.timer?cm.timer+' seconds':'off'),cycleTimer:()=>this.camSet({timer:cm.timer===0?5:(cm.timer===5?10:0)}),
         shoot:()=>this.camShoot(),flip:()=>{this.camSet({facing:cm.facing==='user'?'environment':'user'});setTimeout(()=>this.camStart(),0);},
         retake:()=>{URL.revokeObjectURL(cm.pending.url);this.camSet({pending:null});},approve:()=>this.camApprove(),close:()=>this.camClose(),
         shots:cm.shots.map((x,i)=>({l:POSES[i],bg:x?'url("'+x.url+'")':'none',aria:'Retake '+POSES[i],redo:()=>this.camRedo(i)})),
