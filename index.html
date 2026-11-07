@@ -480,6 +480,12 @@ input[type=range]{accent-color:#CAF70F}
 <button onClick="{{ gd.restore }}" style="border:1px solid #24433D;background:transparent;color:#FFFFFF;border-radius:8px;padding:0 16px;height:44px;font-size:14px;cursor:pointer">Restore from Drive</button>
 <a href="{{ gd.folderUrl }}" target="_blank" rel="noopener" style="display:flex;align-items:center;padding:0 8px;height:44px;font-size:14px;font-weight:600">Open folder</a>
 </div>
+<div style="display:flex;flex-direction:column;gap:0;border-top:1px solid #2E2E2E">
+<sc-for list="{{ gd.folders }}" as="d" hint-placeholder-count="2"><div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #2E2E2E">
+<div style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-size:12px;color:#A9ACB1">{{ d.l }}</span><span style="font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ d.name }}</span></div>
+<button onClick="{{ d.pick }}" style="flex-shrink:0;border:1.5px solid #CAF70F;background:transparent;color:#CAF70F;border-radius:8px;padding:0 14px;height:40px;font-size:13px;font-weight:700;cursor:pointer">Choose folder</button>
+</div></sc-for>
+</div>
 <button onClick="{{ gd.togglePhotos }}" aria-pressed="{{ gd.photosOn }}" style="display:flex;justify-content:space-between;align-items:center;border:0;background:#161616;color:#FFFFFF;border-radius:8px;padding:14px 16px;cursor:pointer;font-size:15px;min-height:52px;text-align:left;gap:12px"><span>Back up Body Timeline photos to Drive</span><span style="color:#CAF70F;font-weight:600">{{ gd.photosLabel }}</span></button>
 </sc-if>
 <div style="font-size:12px;color:#A9ACB1;line-height:1.5">Data (sessions, weight, waist, energy, settings) is saved to data/the15-data.json after each workout and check-in. Photos upload only if you switch them on. The app can only see files it created.</div>
@@ -523,7 +529,7 @@ input[type=range]{accent-color:#CAF70F}
 <div style="position:absolute;inset:0;z-index:0;overflow:hidden;background:#0B0B0B">
 <video ref="{{ camUi.videoRef }}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:{{ camUi.mirror }};display:{{ camUi.videoDisp }}"></video>
 <sc-if value="{{ camUi.hasPending }}"><div role="img" aria-label="Captured photo" style="position:absolute;inset:0;background-color:#000;background-image:{{ camUi.pendingBg }};background-size:cover;background-position:center"></div><div aria-hidden="true" style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0.6) 0%,rgba(0,0,0,0) 22%,rgba(0,0,0,0) 72%,rgba(0,0,0,0.7) 100%)"></div></sc-if>
-<sc-if value="{{ camUi.showGuide }}"><div aria-hidden="true" style="position:absolute;inset:0;background:rgba(0,0,0,0.2);-webkit-mask-image:{{ camUi.maskImg }};mask-image:{{ camUi.maskImg }};-webkit-mask-size:{{ camUi.maskSize }},100% 100%;mask-size:{{ camUi.maskSize }},100% 100%;-webkit-mask-position:{{ camUi.maskPos }},0 0;mask-position:{{ camUi.maskPos }},0 0;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none"></div></sc-if>
+<sc-if value="{{ camUi.showGuide }}"><canvas ref="{{ camUi.guideRef }}" aria-hidden="true" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></canvas></sc-if>
 <sc-if value="{{ camUi.hasErr }}"><div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px;text-align:center"><span style="font-size:15px;line-height:1.5;color:#E5E7EB;max-width:320px">{{ camUi.err }}</span>
 <label style="position:relative;border:1.5px solid #CAF70F;color:#CAF70F;border-radius:8px;padding:0 18px;height:48px;display:flex;align-items:center;font-weight:700;font-size:14px;cursor:pointer">Use phone camera / choose file<input type="file" accept="image/*" capture="{{ camUi.captureAttr }}" onChange="{{ camUi.pickFile }}" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none"></label></div></sc-if>
 <sc-if value="{{ camUi.counting }}"><div aria-live="assertive" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none"><span style="font-family:'Barlow Condensed';font-style:italic;font-weight:800;font-size:200px;line-height:1;color:#CAF70F;text-shadow:0 4px 24px rgba(0,0,0,0.6)">{{ camUi.count }}</span></div></sc-if>
@@ -923,6 +929,8 @@ const pkce=async v=>{const d=await crypto.subtle.digest('SHA-256',new TextEncode
 const plFromUrl=u=>{const m=(u||'').match(/playlist[/:]([A-Za-z0-9]+)/);return m?m[1]:'';};
 const G_ID='402889763048-9n7cguj2aqo96b7s134far1tnsnig64j.apps.googleusercontent.com';
 const G_FOLDER='1qwidAn0F9LyUDTQJiaVFaggakZxsLAWt';
+const G_API_KEY='';
+const G_APP_ID=G_ID.split('-')[0];
 const G_SCOPE='https://www.googleapis.com/auth/drive.file';
 const LIB=Object.values(EX).filter(e=>e.cat!=='Play');
 const PROFILES={'POWER HOUSE':{dir:'House · Dance · Progressive House',bpm:'~120–128 BPM'},'MOVE FASTER':{dir:'Energetic Dance / Electronic House',bpm:'~125–140 BPM'},'CHILL MOTION':{dir:'Chill Dance / Melodic House',bpm:'~95–120 BPM'},'FEEL GOOD':{dir:'Upbeat feel-good House / Dance',bpm:'~120–130 BPM'}};
@@ -981,6 +989,7 @@ class Component extends DCLogic {
       wForm:{date:iso(new Date()),kg:'',waist:'',energy:''},pose:'Front',toast:''};
   })();
   componentDidMount(){
+    window.addEventListener('resize',()=>{if(this.state.cam)this.camGuide();});
     if(window.speechSynthesis){const warm=()=>{this.cdVoicePick('male');this.cdVoicePick('female');};warm();speechSynthesis.addEventListener&&speechSynthesis.addEventListener('voiceschanged',warm);}
     Promise.all(['front','back','front-woman','back-woman'].map(s=>fetch('brand/body-'+s+'.svg').then(r=>r.text()))).then(([fr,bk,fw,bw])=>{this._mmSvg={front:fr,back:bk,'front-w':fw,'back-w':bw};this._mmCache={};this.forceUpdate();}).catch(()=>{});
     this.measurePlayer=()=>{const ph=this.pPhotoRef.current,cue=this.pCueRef.current,bar=this.pBarRef.current;if(!ph||!cue)return;{for(let el=ph.parentElement;el;el=el.parentElement){if(el.scrollTop>0)return;}if(window.scrollY>0)return;const bt=bar?bar.getBoundingClientRect().top:window.innerHeight;const av=Math.min(bt,window.innerHeight)-18;const cur=this.state.pOver||0;const ov=Math.round(cue.getBoundingClientRect().bottom-av+cur);const nv=Math.max(0,Math.min(ov,Math.round(ph.getBoundingClientRect().height*0.55)));if(Math.abs(nv-cur)>2)this.setState({pOver:nv});return;}const w=ph.getBoundingClientRect().width;const barTop=bar?bar.getBoundingClientRect().top:window.innerHeight;const avail=Math.min(barTop,window.innerHeight)-18;const over=cue.getBoundingClientRect().bottom-avail;const h=ph.getBoundingClientRect().height;let nh=Math.round(Math.max(180,Math.min(w,h-over)));if(nh>=w-1)nh=0;if(Math.abs((this.state.pPhotoH||w)-(nh||w))>2)this.setState({pPhotoH:nh||null});};
@@ -997,7 +1006,7 @@ class Component extends DCLogic {
     this.tlv=setInterval(()=>{if(this.state.tl)this.setState(s=>({tlIdx:s.tlIdx+1}))},700);
     this.loadPhotos();
   }
-  componentDidUpdate(pp,ps0){const ps={tab:this._lastTab,...(ps0||{})};const _t=this.state.tab;if(this.state.run&&!this.state.playerHidden&&this.measurePlayer){cancelAnimationFrame(this._pmr);this._pmr=requestAnimationFrame(this.measurePlayer);}if(ps.tab!==this.state.tab||ps.w!==this.state.w||!!ps.run!==!!this.state.run||ps.disp!==this.state.disp)setTimeout(()=>this.measureHero&&this.measureHero(),60);this._lastTab=_t;}
+  componentDidUpdate(pp,ps0){{const c=this.state.cam,o=ps0&&ps0.cam;if(c&&(!o||o.step!==c.step||o.frame!==c.frame||!!o.pending!==!!c.pending||o.err!==c.err))requestAnimationFrame(()=>this.camGuide());}const ps={tab:this._lastTab,...(ps0||{})};const _t=this.state.tab;if(this.state.run&&!this.state.playerHidden&&this.measurePlayer){cancelAnimationFrame(this._pmr);this._pmr=requestAnimationFrame(this.measurePlayer);}if(ps.tab!==this.state.tab||ps.w!==this.state.w||!!ps.run!==!!this.state.run||ps.disp!==this.state.disp)setTimeout(()=>this.measureHero&&this.measureHero(),60);this._lastTab=_t;}
   componentWillUnmount(){this.camStop();window.removeEventListener('resize',this.measureHero);window.removeEventListener('resize',this.onResize);window.removeEventListener('keydown',this.onKey);clearInterval(this.iv);clearInterval(this.tlv);}
   persist(k,v){save(k,v);this.setState({[k]:v});}
   flash(t){this.setState({toast:t});clearTimeout(this.tt);this.tt=setTimeout(()=>this.setState({toast:''}),2600);}
@@ -1099,10 +1108,20 @@ class Component extends DCLogic {
   async gdFolder(name,parent,interactive){const q="mimeType='application/vnd.google-apps.folder' and trashed=false and name='"+name+"'"+(parent?" and '"+parent+"' in parents":" and 'root' in parents");
     const l=await this.gdFetch('https://www.googleapis.com/drive/v3/files?fields=files(id)&q='+encodeURIComponent(q),{},interactive);if(l&&l.files&&l.files[0])return l.files[0].id;
     const c=await this.gdFetch('https://www.googleapis.com/drive/v3/files?fields=id',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,mimeType:'application/vnd.google-apps.folder',parents:parent?[parent]:undefined})},interactive);return c.id;}
-  async gdEnsure(interactive){const g=this.state.gd;if(g.root&&g.data&&g.photos)return g;let root=null,own=false;
+  gdPickerLib(){return new Promise((res,rej)=>{const ok=()=>window.gapi.load('picker',{callback:res,onerror:()=>rej(new Error('Couldn\u2019t load the Google folder picker.'))});if(window.gapi&&window.gapi.load){ok();return;}
+    const s=document.createElement('script');s.src='https://apis.google.com/js/api.js';s.onload=ok;s.onerror=()=>rej(new Error('Couldn\u2019t load the Google folder picker.'));document.head.appendChild(s);});}
+  async gdPickFolder(kind){try{const tk=await this.gdToken(true);await this.gdPickerLib();const P=google.picker;
+      const view=new P.DocsView(P.ViewId.FOLDERS).setIncludeFolders(true).setSelectFolderEnabled(true).setMimeTypes('application/vnd.google-apps.folder').setParent('root');
+      let b=new P.PickerBuilder().addView(view).setOAuthToken(tk).setAppId(G_APP_ID).setTitle(kind==='photos'?'Choose a folder for progress photos':'Choose a folder for reports & data').setCallback(d=>{
+        if(d.action!==P.Action.PICKED)return;const doc=d.docs&&d.docs[0];if(!doc)return;const p={};if(kind==='photos'){p.photos=doc.id;p.photosName=doc.name;p.photoMap={};}else{p.data=doc.id;p.dataName=doc.name;p.dataFile=null;}
+        p.picked=Object.assign({},this.state.gd.picked,{[kind]:true});this.gdSet(p);this.setState({gdMsg:(kind==='photos'?'Photos':'Reports')+' will be saved to \u201C'+doc.name+'\u201D.'});if(kind==='data')setTimeout(()=>this.gdSync(true),0);});
+      if(G_API_KEY)b=b.setDeveloperKey(G_API_KEY);b.build().setVisible(true);}
+    catch(e){this.setState({gdMsg:e.message||'Couldn\u2019t open the folder picker.'});}}
+  async gdEnsure(interactive){const g=this.state.gd;if(g.root&&g.data&&g.photos)return g;
+    if(g.picked&&g.picked.photos&&g.picked.data&&g.photos&&g.data)return g;let root=null,own=false;
     try{const fo=await this.gdFetch('https://www.googleapis.com/drive/v3/files/'+G_FOLDER+'?fields=id,mimeType',{},interactive);if(fo&&fo.id)root=fo.id;}catch(e){if(e.code==='auth'||/enabled/.test(e.message))throw e;}
     if(!root){root=await this.gdFolder('The 15 Project',null,interactive);own=true;}
-    const data=await this.gdFolder('data',root,interactive),photos=await this.gdFolder('photos',root,interactive);
+    const pk=g.picked||{};const data=pk.data&&g.data?g.data:await this.gdFolder('data',root,interactive),photos=pk.photos&&g.photos?g.photos:await this.gdFolder('photos',root,interactive);
     this.gdSet({root,data,photos,own});return Object.assign({},this.state.gd,{root,data,photos,own});}
   async gdUpload({id,name,parents,mime,body},interactive){const b='f15'+Date.now();const meta=id?{}:{name,parents};
     const blob=new Blob(['--'+b+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'+JSON.stringify(meta)+'\r\n--'+b+'\r\nContent-Type: '+mime+'\r\n\r\n',body,'\r\n--'+b+'--']);
@@ -1206,6 +1225,13 @@ class Component extends DCLogic {
     catch(e){this.camSet({err:e&&e.name==='NotAllowedError'?'Camera access was blocked. Allow the camera in your browser settings, or use your phone\u2019s camera instead.':'Couldn\u2019t open the camera. Use your phone\u2019s camera or choose a photo instead.'});}}
   camZoom(v){const tr=this._camStream&&this._camStream.getVideoTracks()[0];if(!tr)return;tr.applyConstraints({advanced:[{zoom:v}]}).then(()=>this.camSet({zoom:v})).catch(()=>this.flash('This camera can\u2019t zoom.'));}
   camDevice(id){this.camSet({deviceId:id,panel:false});setTimeout(()=>this.camStart(),0);}
+  camGuide(){const cv=this._camCv,c=this.state.cam;if(!cv||!c)return;const w=cv.clientWidth,h=cv.clientHeight;if(!w||!h)return;const dpr=Math.min(2,window.devicePixelRatio||1);cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr);
+    const src='brand/camera-'+['front','side','back'][Math.min(c.step,2)]+(this.isFemale()?'-woman':'-man')+'.svg';const half=c.frame==='half';
+    const draw=img=>{const x=cv.getContext('2d');x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,w,h);x.globalCompositeOperation='source-over';x.fillStyle='rgba(0,0,0,0.2)';x.fillRect(0,0,w,h);
+      const ih=h*(half?1.5:0.74),iw=ih*(img.naturalWidth||905.76)/(img.naturalHeight||1830.73),ix=(w-iw)/2,iy=half?(h-ih)*0.06:(h-ih)*0.52-10;
+      x.globalCompositeOperation='destination-out';x.drawImage(img,ix,iy,iw,ih);x.globalCompositeOperation='source-over';};
+    this._silImgs=this._silImgs||{};const im=this._silImgs[src];if(im&&im.complete&&im.naturalWidth){draw(im);return;}
+    const n=new Image();n.onload=()=>{this._silImgs[src]=n;if(this.state.cam)this.camGuide();};n.src=src;}
   camAttach(){const v=this._camVid;if(v&&this._camStream&&v.srcObject!==this._camStream){v.muted=true;v.setAttribute('playsinline','');v.srcObject=this._camStream;v.play().catch(()=>{});}}
   camClose(){const c=this.state.cam;if(c&&(c.shots.some(Boolean)||c.pending)&&c.step<3&&!window.confirm('Discard these photos?'))return;this.camStop();if(c){[c.pending].concat(c.shots).forEach(s=>s&&URL.revokeObjectURL(s.url));}this.setState({cam:null});}
   camShoot(){const c=this.state.cam;if(!c||c.count)return;const go=()=>{const v=this._camVid;if(!v||!v.videoWidth){this.flash('Camera not ready yet.');return;}
@@ -1414,7 +1440,7 @@ class Component extends DCLogic {
       sub:gdS.connected?(gdS.lastSync?'Last synced '+new Date(gdS.lastSync).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'Not synced yet')+(gdS.pending?' · changes waiting':''):'Back up your data to Google Drive',
       connectLabel:s.gdBusy?'Working…':(gdS.connected?'Disconnect':'Connect Google Drive'),connBg:gdS.connected?'transparent':L,connFg:gdS.connected?L:BG,
       toggleConnect:()=>{if(s.gdBusy)return;gdS.connected?this.gdDisconnect():this.gdConnect();},sync:()=>this.gdSync(true),restore:()=>this.gdRestore(),
-      folderUrl:'https://drive.google.com/drive/folders/'+(gdS.root||G_FOLDER),photosOn:!!gdS.photosOn,photosLabel:gdS.photosOn?'On':'Off',togglePhotos:()=>{this.gdSet({photosOn:!gdS.photosOn});if(!gdS.photosOn)setTimeout(()=>this.gdSync(true),0);}};
+      folderUrl:'https://drive.google.com/drive/folders/'+(gdS.root||G_FOLDER),folders:[['photos','Progress photos folder',gdS.photosName||'Default · The 15 Project / photos'],['data','Reports & data folder',gdS.dataName||'Default · The 15 Project / data']].map(([k,l,name])=>({l,name,pick:()=>this.gdPickFolder(k)})),photosOn:!!gdS.photosOn,photosLabel:gdS.photosOn?'On':'Off',togglePhotos:()=>{this.gdSet({photosOn:!gdS.photosOn});if(!gdS.photosOn)setTimeout(()=>this.gdSync(true),0);}};
     const mqTxt=r?('SESSION IN PROGRESS · '+W[r.wid].name.toUpperCase()+' · '+(r.done?'READY TO LOG':fmt(this.total(r)-this.el(r))+' LEFT')+' · TAP TO RESUME · '):'';
     const mqItem=k=>React.createElement('span',{key:k,style:{whiteSpace:'nowrap'}},mqTxt.repeat(3));
     const resumeMarquee=React.createElement('span',{'aria-hidden':true,style:{position:'absolute',top:0,left:0,height:30,display:'flex',alignItems:'center',fontSize:11,fontWeight:700,letterSpacing:'1.5px',whiteSpace:'nowrap',animation:rm?'none':'f15marq 22s linear infinite'}},[mqItem(0),mqItem(1)]);
@@ -1443,13 +1469,13 @@ class Component extends DCLogic {
       const guide=!pend&&!cm.err&&st<3;const ink='#FFFFFF';
       const half=cm.frame==='half';
       return {show:true,shooting,frames:[['full','Full body'],['half','Half body']].map(([k,l])=>{const on=cm.frame===k;return {l,on,bg:on?L:'transparent',fg:on?'#161616':'#FFFFFF',pick:()=>{save('camFrame',k);this.camSet({frame:k});}};}),
-        maskSize:half?'auto 150%':'auto 74%',maskPos:half?'50% 6%':'50% calc(52% - 10px)',
+        silH:half?'150%':'74%',silY:half?'-3%':'12%',maskSize:half?'auto 150%':'auto 74%',maskPos:half?'50% 6%':'50% calc(52% - 10px)',
         panel:!!cm.panel,panelFg:cm.panel?L:'#E5E7EB',togglePanel:()=>this.camSet({panel:!cm.panel}),
         devices:cm.devices.map(d=>{const on=d.id===cm.deviceId;return {label:d.label,on,border:on?L:'#2E2E2E',fg:on?L:'#FFFFFF',pick:()=>this.camDevice(d.id)};}),oneDevice:cm.devices.length<2,
         hasZoom:!!cm.zoomCap,zMin:cm.zoomCap?cm.zoomCap.min:1,zMax:cm.zoomCap?cm.zoomCap.max:1,zStep:cm.zoomCap?cm.zoomCap.step:0.1,zoom:cm.zoom||1,zoomLabel:(cm.zoom||1).toFixed(1)+'×',setZoom:e=>this.camZoom(+e.target.value),
         ink,sub:'#E5E7EB',maskImg:'url("brand/camera-'+POSES[Math.min(st,2)].toLowerCase()+'-man.svg"), linear-gradient(#000,#000)',review:st===3,details:st===4,kicker:st<3?'Step '+(st+1)+' of 3':(st===3?'Review':'Check-in'),title:st<3?POSES[st]:(st===3?'Your photos':'Weight & feeling'),
         steps:POSES.map((l,i)=>{const done=!!cm.shots[i];const cur=i===st;return {l,bar:done?L:(cur?ink:'rgba(255,255,255,0.35)'),fg:done?L:(cur?ink:'rgba(255,255,255,0.7)')};}),
-        videoRef:el=>{this._camVid=el;this.camAttach();},mirror:cm.facing==='user'?'scaleX(-1)':'none',videoDisp:pend||cm.err?'none':'block',
+        videoRef:el=>{this._camVid=el;this.camAttach();},guideRef:el=>{this._camCv=el;if(el)requestAnimationFrame(()=>this.camGuide());},mirror:cm.facing==='user'?'scaleX(-1)':'none',videoDisp:pend||cm.err?'none':'block',
         hasPending:pend,pendingBg:pend?'url("'+cm.pending.url+'")':'none',live:!pend,showGuide:!pend&&!cm.err&&st<3,sil:'brand/camera-'+POSES[Math.min(st,2)].toLowerCase()+'-man.svg',
         hasErr:!!cm.err&&!pend,err:cm.err,captureAttr:cm.facing==='user'?'user':'environment',pickFile:e=>this.camPick(e),
         counting:!!cm.count,count:cm.count,shootOff:!!cm.err||!!cm.count,shutterBg:cm.count?'#6B6F75':L,
