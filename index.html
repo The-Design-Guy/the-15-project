@@ -523,7 +523,7 @@ input[type=range]{accent-color:#CAF70F}
 <div style="position:absolute;inset:0;z-index:0;overflow:hidden;background:#0B0B0B">
 <video ref="{{ camUi.videoRef }}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:{{ camUi.mirror }};display:{{ camUi.videoDisp }}"></video>
 <sc-if value="{{ camUi.hasPending }}"><div role="img" aria-label="Captured photo" style="position:absolute;inset:0;background-color:#000;background-image:{{ camUi.pendingBg }};background-size:cover;background-position:center"></div><div aria-hidden="true" style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0.6) 0%,rgba(0,0,0,0) 22%,rgba(0,0,0,0) 72%,rgba(0,0,0,0.7) 100%)"></div></sc-if>
-<sc-if value="{{ camUi.showGuide }}"><div aria-hidden="true" style="position:absolute;inset:0;background:rgba(255,255,255,0.2);-webkit-mask-image:{{ camUi.maskImg }};mask-image:{{ camUi.maskImg }};-webkit-mask-size:auto 74%,100% 100%;mask-size:auto 74%,100% 100%;-webkit-mask-position:50% calc(52% - 10px),0 0;mask-position:50% calc(52% - 10px),0 0;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none"></div></sc-if>
+<sc-if value="{{ camUi.showGuide }}"><div aria-hidden="true" style="position:absolute;inset:0;background:rgba(255,255,255,0.2);-webkit-mask-image:{{ camUi.maskImg }};mask-image:{{ camUi.maskImg }};-webkit-mask-size:{{ camUi.maskSize }},100% 100%;mask-size:{{ camUi.maskSize }},100% 100%;-webkit-mask-position:{{ camUi.maskPos }},0 0;mask-position:{{ camUi.maskPos }},0 0;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none"></div></sc-if>
 <sc-if value="{{ camUi.hasErr }}"><div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px;text-align:center"><span style="font-size:15px;line-height:1.5;color:#E5E7EB;max-width:320px">{{ camUi.err }}</span>
 <label style="position:relative;border:1.5px solid #CAF70F;color:#CAF70F;border-radius:8px;padding:0 18px;height:48px;display:flex;align-items:center;font-weight:700;font-size:14px;cursor:pointer">Use phone camera / choose file<input type="file" accept="image/*" capture="{{ camUi.captureAttr }}" onChange="{{ camUi.pickFile }}" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none"></label></div></sc-if>
 <sc-if value="{{ camUi.counting }}"><div aria-live="assertive" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none"><span style="font-family:'Barlow Condensed';font-style:italic;font-weight:800;font-size:200px;line-height:1;color:#CAF70F;text-shadow:0 4px 24px rgba(0,0,0,0.6)">{{ camUi.count }}</span></div></sc-if>
@@ -537,13 +537,27 @@ input[type=range]{accent-color:#CAF70F}
 <sc-for list="{{ camUi.steps }}" as="t" hint-placeholder-count="3"><div style="display:flex;flex-direction:column;gap:6px"><span style="height:3px;border-radius:2px;background:{{ t.bar }}"></span><span style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:{{ t.fg }}">{{ t.l }}</span></div></sc-for>
 </div>
 <sc-if value="{{ camUi.shooting }}">
+<div style="position:relative;z-index:1;display:flex;justify-content:center;padding:0 18px">
+<div role="group" aria-label="Frame" style="display:flex;gap:4px;padding:3px;border-radius:8px;background:rgba(0,0,0,0.45)">
+<sc-for list="{{ camUi.frames }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.pick }}" aria-pressed="{{ o.on }}" style="border:0;border-radius:6px;padding:0 14px;height:34px;font-size:12px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;cursor:pointer;background:{{ o.bg }};color:{{ o.fg }};text-shadow:none">{{ o.l }}</button></sc-for>
+</div></div>
 <div style="position:relative;z-index:1;flex:1;min-height:0"></div>
+<sc-if value="{{ camUi.panel }}">
+<div style="position:relative;z-index:2;margin:0 12px 10px;padding:14px;border-radius:12px;background:rgba(14,14,14,0.92);display:flex;flex-direction:column;gap:12px;text-shadow:none">
+<div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#A9ACB1">Lens</span>
+<div style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{ camUi.devices }}" as="d"><button onClick="{{ d.pick }}" aria-pressed="{{ d.on }}" style="border:1.5px solid {{ d.border }};background:transparent;color:{{ d.fg }};border-radius:8px;padding:0 12px;min-height:40px;font-size:13px;cursor:pointer;text-align:left">{{ d.label }}</button></sc-for></div>
+<sc-if value="{{ camUi.oneDevice }}"><span style="font-size:12px;color:#A9ACB1">Only one camera found on this side. Try Flip, or zoom out below if available.</span></sc-if>
+<button onClick="{{ camUi.flip }}" style="align-self:flex-start;border:0;background:transparent;color:#CAF70F;padding:0;height:32px;font-size:13px;font-weight:600;cursor:pointer">Flip front / back</button></div>
+<sc-if value="{{ camUi.hasZoom }}"><div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#A9ACB1">Zoom · {{ camUi.zoomLabel }}</span>
+<input type="range" aria-label="Zoom" min="{{ camUi.zMin }}" max="{{ camUi.zMax }}" step="{{ camUi.zStep }}" value="{{ camUi.zoom }}" onChange="{{ camUi.setZoom }}" style="width:100%;accent-color:#CAF70F"></div></sc-if>
+</div>
+</sc-if>
 <div style="position:relative;z-index:1;padding:0 18px;font-size:13px;color:{{ camUi.ink }};text-align:center;line-height:1.45;min-height:19px">{{ camUi.hint }}</div>
 <div style="position:relative;z-index:1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:center;padding:14px 18px calc(16px + env(safe-area-inset-bottom));gap:12px">
 <sc-if value="{{ camUi.live }}">
 <button onClick="{{ camUi.cycleTimer }}" aria-label="{{ camUi.timerAria }}" style="justify-self:start;border:0;background:transparent;color:{{ camUi.ink }};border-radius:8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;padding:4px 8px;min-width:56px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l2.5 2.5M9 2h6"></path></svg><span style="font-size:11px;font-weight:600;color:{{ camUi.timerFg }}">{{ camUi.timerLabel }}</span></button>
 <button onClick="{{ camUi.shoot }}" aria-label="Take photo" disabled="{{ camUi.shootOff }}" style="justify-self:center;width:76px;height:76px;border-radius:8px;border:3px solid {{ camUi.ink }};background:transparent;padding:5px;cursor:pointer"><span style="display:block;width:100%;height:100%;border-radius:5px;background:{{ camUi.shutterBg }}"></span></button>
-<button onClick="{{ camUi.flip }}" aria-label="Switch camera" style="justify-self:end;border:0;background:transparent;color:{{ camUi.ink }};border-radius:8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;padding:4px 8px;min-width:56px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-3.5L15 5H9L7.5 7H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1z"></path><path d="M9 13a3 3 0 0 1 5-2.2M15 13a3 3 0 0 1-5 2.2"></path><path d="M14 9.5v1.5h-1.5M10 16.5V15h1.5"></path></svg><span style="font-size:11px;font-weight:600;color:{{ camUi.sub }}">Flip</span></button>
+<button onClick="{{ camUi.togglePanel }}" aria-label="Camera options" aria-expanded="{{ camUi.panel }}" style="justify-self:end;border:0;background:transparent;color:#FFFFFF;border-radius:8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;padding:4px 8px;min-width:56px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-3.5L15 5H9L7.5 7H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1z"></path><path d="M9 13a3 3 0 0 1 5-2.2M15 13a3 3 0 0 1-5 2.2"></path><path d="M14 9.5v1.5h-1.5M10 16.5V15h1.5"></path></svg><span style="font-size:11px;font-weight:600;color:{{ camUi.panelFg }}">Camera</span></button>
 </sc-if>
 <sc-if value="{{ camUi.hasPending }}">
 <button onClick="{{ camUi.retake }}" style="justify-self:start;border:0;background:transparent;color:#FFFFFF;border-radius:8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;padding:4px 8px;min-width:64px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"></path><path d="M3 4v5h5"></path></svg><span style="font-size:11px;color:#E5E7EB">Retake</span></button>
@@ -1178,14 +1192,20 @@ class Component extends DCLogic {
     this.setState({voiceMsg:'\u201C'+(text||this.state.voiceText)+'\u201D → '+msg,voiceText:''});
   }
   // ---- progress camera
-  camOpen(){this.setState({cam:{step:0,shots:[null,null,null],pending:null,timer:5,count:0,err:'',facing:'user',kg:'',energy:null,busy:false},menu:false});setTimeout(()=>this.camStart(),0);}
+  camOpen(){this.setState({cam:{step:0,shots:[null,null,null],pending:null,timer:5,count:0,err:'',facing:'user',deviceId:null,devices:[],panel:false,zoom:null,zoomCap:null,frame:load('camFrame','full'),kg:'',energy:null,busy:false},menu:false});setTimeout(()=>this.camStart(),0);}
   camSet(p){this.setState(x=>({cam:x.cam?Object.assign({},x.cam,p):null}));}
   camStop(){if(this._camStream){this._camStream.getTracks().forEach(t=>t.stop());this._camStream=null;}clearInterval(this._camIv);}
   async camStart(){this.camStop();const c=this.state.cam;if(!c)return;
     if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){this.camSet({err:'Live camera isn\u2019t available here. Use your phone\u2019s camera or choose a photo instead.'});return;}
-    try{const st=await navigator.mediaDevices.getUserMedia({video:{facingMode:c.facing,width:{ideal:1080},height:{ideal:1920}},audio:false});if(!this.state.cam){st.getTracks().forEach(t=>t.stop());return;}
-      this._camStream=st;this.camSet({err:''});this.camAttach();}
+    try{const vid=c.deviceId?{deviceId:{exact:c.deviceId},width:{ideal:1080},height:{ideal:1920}}:{facingMode:c.facing,width:{ideal:1080},height:{ideal:1920}};
+      const st=await navigator.mediaDevices.getUserMedia({video:vid,audio:false});if(!this.state.cam){st.getTracks().forEach(t=>t.stop());return;}
+      this._camStream=st;const tr=st.getVideoTracks()[0];const se=(tr&&tr.getSettings&&tr.getSettings())||{};let caps={};try{caps=(tr&&tr.getCapabilities&&tr.getCapabilities())||{};}catch(e){}
+      let devices=[];try{devices=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='videoinput').map((d,i)=>({id:d.deviceId,label:d.label||('Camera '+(i+1))}));}catch(e){}
+      const lbl=((devices.find(d=>d.id===se.deviceId)||{}).label||'');const facing=se.facingMode?(se.facingMode==='user'?'user':'environment'):(/front|user|facetime|selfie/i.test(lbl)?'user':(c.deviceId?'environment':c.facing));
+      this.camSet({err:'',devices,deviceId:se.deviceId||c.deviceId,facing,zoomCap:caps.zoom?{min:caps.zoom.min,max:caps.zoom.max,step:caps.zoom.step||0.1}:null,zoom:caps.zoom?(se.zoom||caps.zoom.min):null});this.camAttach();}
     catch(e){this.camSet({err:e&&e.name==='NotAllowedError'?'Camera access was blocked. Allow the camera in your browser settings, or use your phone\u2019s camera instead.':'Couldn\u2019t open the camera. Use your phone\u2019s camera or choose a photo instead.'});}}
+  camZoom(v){const tr=this._camStream&&this._camStream.getVideoTracks()[0];if(!tr)return;tr.applyConstraints({advanced:[{zoom:v}]}).then(()=>this.camSet({zoom:v})).catch(()=>this.flash('This camera can\u2019t zoom.'));}
+  camDevice(id){this.camSet({deviceId:id,panel:false});setTimeout(()=>this.camStart(),0);}
   camAttach(){const v=this._camVid;if(v&&this._camStream&&v.srcObject!==this._camStream){v.muted=true;v.setAttribute('playsinline','');v.srcObject=this._camStream;v.play().catch(()=>{});}}
   camClose(){const c=this.state.cam;if(c&&(c.shots.some(Boolean)||c.pending)&&c.step<3&&!window.confirm('Discard these photos?'))return;this.camStop();if(c){[c.pending].concat(c.shots).forEach(s=>s&&URL.revokeObjectURL(s.url));}this.setState({cam:null});}
   camShoot(){const c=this.state.cam;if(!c||c.count)return;const go=()=>{const v=this._camVid;if(!v||!v.videoWidth){this.flash('Camera not ready yet.');return;}
@@ -1421,7 +1441,13 @@ class Component extends DCLogic {
     const cm=s.cam;const POSES=['Front','Side','Back'];const camVals=cm?(()=>{const st=cm.step;const shooting=st<3,pend=!!cm.pending;
       const FEEL=[[1,'Drained'],[2,'Low'],[3,'OK'],[4,'Good'],[5,'Great']];
       const guide=!pend&&!cm.err&&st<3;const ink='#FFFFFF';
-      return {show:true,shooting,ink,sub:'#E5E7EB',maskImg:'url("brand/camera-'+POSES[Math.min(st,2)].toLowerCase()+'-man.svg"), linear-gradient(#000,#000)',review:st===3,details:st===4,kicker:st<3?'Step '+(st+1)+' of 3':(st===3?'Review':'Check-in'),title:st<3?POSES[st]:(st===3?'Your photos':'Weight & feeling'),
+      const half=cm.frame==='half';
+      return {show:true,shooting,frames:[['full','Full body'],['half','Half body']].map(([k,l])=>{const on=cm.frame===k;return {l,on,bg:on?L:'transparent',fg:on?'#161616':'#FFFFFF',pick:()=>{save('camFrame',k);this.camSet({frame:k});}};}),
+        maskSize:half?'auto 150%':'auto 74%',maskPos:half?'50% 6%':'50% calc(52% - 10px)',
+        panel:!!cm.panel,panelFg:cm.panel?L:'#E5E7EB',togglePanel:()=>this.camSet({panel:!cm.panel}),
+        devices:cm.devices.map(d=>{const on=d.id===cm.deviceId;return {label:d.label,on,border:on?L:'#2E2E2E',fg:on?L:'#FFFFFF',pick:()=>this.camDevice(d.id)};}),oneDevice:cm.devices.length<2,
+        hasZoom:!!cm.zoomCap,zMin:cm.zoomCap?cm.zoomCap.min:1,zMax:cm.zoomCap?cm.zoomCap.max:1,zStep:cm.zoomCap?cm.zoomCap.step:0.1,zoom:cm.zoom||1,zoomLabel:(cm.zoom||1).toFixed(1)+'×',setZoom:e=>this.camZoom(+e.target.value),
+        ink,sub:'#E5E7EB',maskImg:'url("brand/camera-'+POSES[Math.min(st,2)].toLowerCase()+'-man.svg"), linear-gradient(#000,#000)',review:st===3,details:st===4,kicker:st<3?'Step '+(st+1)+' of 3':(st===3?'Review':'Check-in'),title:st<3?POSES[st]:(st===3?'Your photos':'Weight & feeling'),
         steps:POSES.map((l,i)=>{const done=!!cm.shots[i];const cur=i===st;return {l,bar:done?L:(cur?ink:'rgba(255,255,255,0.35)'),fg:done?L:(cur?ink:'rgba(255,255,255,0.7)')};}),
         videoRef:el=>{this._camVid=el;this.camAttach();},mirror:cm.facing==='user'?'scaleX(-1)':'none',videoDisp:pend||cm.err?'none':'block',
         hasPending:pend,pendingBg:pend?'url("'+cm.pending.url+'")':'none',live:!pend,showGuide:!pend&&!cm.err&&st<3,sil:'brand/camera-'+POSES[Math.min(st,2)].toLowerCase()+'-man.svg',
@@ -1429,7 +1455,7 @@ class Component extends DCLogic {
         counting:!!cm.count,count:cm.count,shootOff:!!cm.err||!!cm.count,shutterBg:cm.count?'#6B6F75':L,
         hint:cm.err&&!pend?'':pend?'Happy with it? Approve, or retake.':(st===1?'Turn to your side. Line up with the outline, arms relaxed.':(st===2?'Turn your back to the camera. Line up with the outline.':'Stand facing the camera. Line up with the outline. Phone at chest height, about 2 m away.')),
         timerLabel:cm.timer?cm.timer+'s':'Off',timerFg:cm.timer?L:'#E5E7EB',timerAria:'Self-timer: '+(cm.timer?cm.timer+' seconds':'off'),cycleTimer:()=>this.camSet({timer:cm.timer===0?5:(cm.timer===5?10:0)}),
-        shoot:()=>this.camShoot(),flip:()=>{this.camSet({facing:cm.facing==='user'?'environment':'user'});setTimeout(()=>this.camStart(),0);},
+        shoot:()=>this.camShoot(),flip:()=>{this.camSet({facing:cm.facing==='user'?'environment':'user',deviceId:null,panel:false});setTimeout(()=>this.camStart(),0);},
         retake:()=>{URL.revokeObjectURL(cm.pending.url);this.camSet({pending:null});},approve:()=>this.camApprove(),close:()=>this.camClose(),
         shots:cm.shots.map((x,i)=>({l:POSES[i],bg:x?'url("'+x.url+'")':'none',aria:'Retake '+POSES[i],redo:()=>this.camRedo(i)})),
         busy:cm.busy,saveLabel:cm.busy?'Saving…':'Save photos',saveNote:window.showDirectoryPicker?'Saved in the app and to a folder you choose on this computer.':'Saved in the app, and you can save copies to your phone.',save:()=>this.camSave(),
