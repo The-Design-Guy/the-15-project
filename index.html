@@ -167,7 +167,7 @@ html,body,*{scrollbar-color:#CAF70F #0B0B0B;}
 <button onClick="{{ startToday }}" style-hover="background:#CAF70F;color:#161616" style="margin-top:6px;border:1.5px solid #CAF70F;cursor:pointer;background:{{ startBg }};color:{{ startFg }};font-weight:700;font-size:17px;padding:0 24px;height:60px;border-radius:8px;display:flex;align-items:center;justify-content:center;gap:10px;transition:background 150ms ease,color 150ms ease">{{ I.play }}{{ today.startLabel }}</button>
 </sc-if>
 <sc-if value="{{ today.isRest }}"><p style="margin:0;font-size:15px;line-height:1.6;color:#E5E7EB;text-wrap:pretty;max-width:{{ heroTextW }}">Recovery is part of the plan. An easy walk or gentle stretching is fine. Quick 5 is there if you want to move.</p></sc-if>
-<sc-if value="{{ hero.hasStatus }}"><div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap"><span style="display:flex;align-items:center;gap:6px;font-size:13px;color:#CAF70F">{{ I.check }}{{ hero.status }}</span>
+<sc-if value="{{ hero.hasStatus }}"><div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:12px"><span style="display:flex;align-items:center;gap:6px;font-size:13px;color:#CAF70F">{{ I.check }}{{ hero.status }}</span>
 <sc-if value="{{ hero.live }}"><div style="display:flex;align-items:center;gap:14px"><button onClick="{{ showPlayer }}" style-hover="background:#B5E600" style="border:0;background:#CAF70F;color:#161616;border-radius:8px;height:44px;padding:0 18px;font-size:14px;font-weight:700;cursor:pointer;transition:background 150ms ease">Resume session</button><button onClick="{{ endEarly }}" style-hover="color:#FFFFFF" style="border:0;background:transparent;color:#CAF70F;height:44px;padding:0 4px;font-size:14px;font-weight:700;cursor:pointer;transition:color 150ms ease">End session</button></div></sc-if></div></sc-if>
 </div>
 </section>
@@ -1457,7 +1457,7 @@ B:{name:'Full Body B',sub:'Beginner strength',profile:'POWER HOUSE',ex:['support
 MOB:{name:'Mobility + Core',sub:'Easy recovery day',profile:'CHILL MOTION',ex:['cat-cow','thoracic-rotation','hip-mobility','bird-dog','knee-plank']},
 C:{name:'Full Body C',sub:'Beginner strength',profile:'POWER HOUSE',ex:['bodyweight-squat','wall-push-up','glute-bridge','dead-bug','standing-calf-raise']},
 EMMA:{name:'Family Mode',sub:'Optional parent-child play, not a performance program',profile:'FEEL GOOD',ex:(()=>{const pool=['freeze-dance','animal-walks','balance-statues','follow-leader','gentle-chase','mirror-mirror','red-light-green-light','balloon-keep-up','animal-yoga','high-five-squats','obstacle-course'];const wk=Math.floor(Date.now()/(7*864e5));const rest=pool.slice(1);const out=['freeze-dance'];for(let i=0;i<4;i++)out.push(rest[(wk*4+i)%rest.length]);return out;})()},
-REST:{name:'Rest',sub:'Recovery',profile:'CHILL MOTION',ex:[]},
+REST:{name:'Rest day',sub:'Even the most fierce athletes need to recover from time to time.',profile:'CHILL MOTION',ex:[]},
 Q5:{name:'Quick 5',sub:'Easier five-minute session',profile:'FEEL GOOD',ex:['bodyweight-squat','wall-push-up','march-in-place']}
 };
 const SCHED={1:'A',2:'CARDIO',3:'B',4:'MOB',5:'C',6:'EMMA',0:'REST'};
