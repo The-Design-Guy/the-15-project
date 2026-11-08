@@ -86,11 +86,11 @@ html,body,*{scrollbar-color:#CAF70F #0B0B0B;}
 <script src="https://accounts.google.com/gsi/client" async></script>
 </helmet>
 <div style="--tmob:{{ tmob }};min-height:100dvh;overflow-x:clip;display:flex;flex-direction:column;align-items:{{ stageAlign }};background:{{ stageBg }};padding:{{ stagePad }}">
-<div role="group" aria-label="Preview mode" style="display:{{ toggleDisp }};position:fixed;bottom:16px;left:16px;z-index:100;gap:4px;background:#0E0E0E;border-radius:12px;padding:4px;box-shadow:0 4px 20px rgba(0,0,0,0.4)">
+<sc-if value="{{ false }}"><div role="group" aria-label="Preview mode" style="display:{{ toggleDisp }};position:fixed;bottom:16px;left:16px;z-index:100;gap:4px;background:#0E0E0E;border-radius:12px;padding:4px;box-shadow:0 4px 20px rgba(0,0,0,0.4)">
 <sc-for list="{{ viewOpts }}" as="v" hint-placeholder-count="2">
 <button onClick="{{ v.pick }}" aria-pressed="{{ v.on }}" style="border:0;cursor:pointer;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;min-height:36px;background:{{ v.bg }};color:{{ v.fg }}">{{ v.l }}</button>
 </sc-for>
-</div>
+</div></sc-if>
 <div style="background:#000000;color:#FFFFFF;font-family:Heebo,sans-serif;display:flex;margin:0 auto;transform:{{ frameTf }};scrollbar-width:none;width:{{ frameW }};height:{{ frameH }};min-height:{{ frameMinH }};overflow:{{ frameOverflow }};border-radius:{{ frameRadius }};border:{{ frameBorder }}">
 <sc-if value="{{ isWide }}">
 <nav aria-label="Primary" style="width:232px;flex-shrink:0;position:sticky;top:0;height:100vh;padding:32px 20px;display:flex;flex-direction:column;gap:32px;border-right:1px solid #0D2925">
@@ -1459,7 +1459,7 @@ class Component extends DCLogic {
   state = (()=>{
     let settings=load('settings',null);
     if(!settings){settings={startDate:iso(monday(new Date())),level:1,sound:true,voiceLang:'auto',playlists:{}};save('settings',settings);}
-    return {view:'mobile',tab:'today',w:window.innerWidth,settings,history:load('history',[]),weights:load('weights',[]),favs:load('favs',[]),notes:load('notes',{}),overrides:load('overrides',{}),dismissed:load('dismissed',''),run:load('run',null),
+    return {view:(window.innerWidth>=860?'desktop':'mobile'),tab:'today',w:window.innerWidth,settings,history:load('history',[]),weights:load('weights',[]),favs:load('favs',[]),notes:load('notes',{}),overrides:load('overrides',{}),dismissed:load('dismissed',''),run:load('run',null),
       exId:null,rcId:null,srOpen:false,srF:{title:'',category:'Smoothie',prep:'5',servings:'1',ingredients:'',steps:'',allergens:'',credit:'',ok:false},srErr:{},srMsg:'',srOk:false,srBusy:false,srNeedDrive:false,srPhoto:null,srPhotoUrl:'',rcSubs:load('rcSubs',[]),imgPop:null,menu:false,heroMin:'auto',termsPage:false,askDlg:null,welcome:false,emailAsk:null,cam:null,onb:null,onbBusy:false,onbErr:'',onbRec:'idle',onbRecT:0,onbRecUrl:'',onbRecMsg:'',onbNote:'',onbBlack:false,onbWkTip:false,onbMiss:[],onbMissPop:false,onbPct:0,onbFade:false,onbCam:'unknown',onbMic:'unknown',onbTick:0,setTab:'program',profile:load('profile',{name:'',sex:''}),exTab:'how',planTab:'week',planWeek:null,libView:'grid',pPhotoH:null,pOver:0,tipKey:null,libCat:'All',imgZoom:false,tipOpen:false,gd:load('gd',{}),gdTok:(()=>{try{const t=JSON.parse(localStorage.getItem('f15.gtok'));return t&&t.exp>Date.now()?t:null;}catch(e){return null}})(),gdMsg:'',gdBusy:false,rec:'idle',recMsg:'',sp:load('sp',null),spState:null,spPlaylists:[],spDevices:[],spMsg:'',mix:null,mixlog:load('mixlog',{}),playerHidden:!!load('run',null),planOpen:null,fuelCat:'All',fuelQ:'',photos:[],cmpA:'',cmpB:'',cmpPos:50,tl:false,tlIdx:0,sheet:null,voiceText:'',voiceMsg:'',fb:{rpe:null,tech:null},
       wForm:{date:iso(new Date()),kg:'',waist:'',energy:''},pose:'Front',toast:''};
   })();
@@ -1481,7 +1481,7 @@ class Component extends DCLogic {
     setTimeout(this.measureHero,60);window.addEventListener('resize',this.measureHero);
     this.spCallback().then(()=>{if(this.state.sp)this.spLoad();});
     this.spIv=setInterval(()=>{if(this.state.sp&&!document.hidden&&(this.state.tab==='music'||(this.state.run&&!this.state.playerHidden)))this.spPoll();},5000);
-    this.onResize=()=>this.setState({w:window.innerWidth});
+    this.onResize=()=>this.setState({w:window.innerWidth,view:window.innerWidth>=860?'desktop':'mobile'});
     window.addEventListener('resize',this.onResize);
     this.onKey=e=>{const r=this.state.run;if(e.key==='Escape'&&this.state.imgPop){this.setState({imgPop:null});return;}if(!r||r.done||this.state.sheet||this.state.imgPop||/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))return;
       if(e.code==='Space'){e.preventDefault();this.togglePause();} else if(e.key==='ArrowRight')this.nextEx(); else if(e.key==='ArrowLeft')this.prevEx();};
@@ -1986,7 +1986,7 @@ if(ps0&&ps0.rcId!==this.state.rcId&&SP_OK_HOST()){const R2=RECIPES.find(r=>r.id=
       cta:o.phase==='ready'?'Start your day!':steps&&o.step===3?'Build my plan':'Continue',next:()=>this.onbNext(),nextOff,nextBg:nextOff?'rgba(255,255,255,0.35)':L,
       mc:(()=>{const M=s.onbMiss||[],r='#FF3939';return {level:M.includes('My fitness level')?r:'#C9CCD1',act:M.includes('My typical day is')?r:'#C9CCD1',lim:M.includes('Any pain or limitations?')?r:'#C9CCD1',goals:M.includes('Your goals')?r:'#C9CCD1',days:M.includes('How many days a week?')?r:L,fam:M.includes('Solo or together?')?r:L};})(),missPop:!!s.onbMissPop,missList:(s.onbMiss||[]).map(n=>({n})),closeMiss:()=>this.setState({onbMissPop:false}),hasNote:!!s.onbNote,note:s.onbNote,noteFg:'#FFD1D1'};
     const onbConfetti=o.phase==='celebrate'&&!rm?React.createElement('canvas',{key:'conf',ref:this.onbConfettiRef,'aria-hidden':true,style:{position:'absolute',inset:0,width:'100%',height:'100%',zIndex:5,pointerEvents:'none'}}):null;
-    const bgHero=o.phase==='build'||o.phase==='celebrate';const fem=this.isFemaleOnb(a);const onbVideo=React.createElement('video',{key:bgHero?'onbv-hero-'+(fem?'w':'m'):'onbv',src:bgHero?(fem?HERO_VIDS_W:HERO_VIDS)[this.heroIdx()]:'hero/onboarding.mp4',autoPlay:!rm,muted:true,loop:true,playsInline:true,preload:'auto','aria-hidden':true,style:{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',objectPosition:'center',display:'block'}});
+    const bgHero=o.phase==='build'||o.phase==='celebrate';const fem=this.isFemaleOnb(a);const onbVideo=React.createElement('video',{key:bgHero?'onbv-hero-'+(fem?'w':'m'):'onbv',src:bgHero?(fem?HERO_VIDS_W:HERO_VIDS)[this.heroIdx()]:'hero/onboarding.mp4',autoPlay:!rm,muted:true,loop:true,playsInline:true,preload:'auto','aria-hidden':true,style:{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',objectPosition:(s.view==='desktop'?'center bottom':'center'),display:'block'}});
     let onbMap=null;if(o.phase==='build'&&this._onbIds&&this._onbIds.length){const id=this._onbIds[s.onbTick%this._onbIds.length];const mk=side=>{const svg=this.muscleSvg(id,side);return svg?React.createElement('div',{key:side,style:{height:'100%',display:'flex'},dangerouslySetInnerHTML:{__html:svg.replace('<svg','<svg style="height:100%;width:auto;display:block"')}}):null;};onbMap=[mk('front'),mk('back')];}
     const onbBar=rm?null:React.createElement('span',{key:'bar',style:{position:'absolute',top:0,bottom:0,width:'35%',background:L,borderRadius:2,animation:'f15ind 1.4s ease-in-out infinite'}});
     return {onb,onbVideo,onbMap,onbBar,onbConfetti};}
