@@ -1487,6 +1487,7 @@ class Component extends DCLogic {
       wForm:{date:iso(new Date()),kg:'',waist:'',energy:''},pose:'Front',toast:''};
   })();
   componentDidMount(){
+    setTimeout(()=>{const r=this.state.run;if(r&&!r.done)this.wakeSet(true);},0);
     this._gdWake=()=>{document.removeEventListener('pointerdown',this._gdWake,true);const g=this.state.gd||{},t=this.state.gdTok;if(g.connected&&!(t&&t.exp>Date.now()+60000))this.gdAuth('').then(()=>{if(this.state.gd.pending)this.gdSync(false);}).catch(()=>{});};
     document.addEventListener('pointerdown',this._gdWake,true);
     const dm=location.pathname.match(/^\/recipe\/([a-z0-9-]+)\/?$/i);const dR=dm&&RECIPES.find(r=>r.id===dm[1].toLowerCase());
@@ -1514,11 +1515,11 @@ class Component extends DCLogic {
     this.loadPhotos();
   }
   heroMeasure(){const v=document.querySelector('[data-hero-slides]');const nav=document.querySelector('nav[aria-label=Primary]');if(!v||!nav||!v.parentElement){return;}const sh=Math.round(v.parentElement.getBoundingClientRect().left-nav.getBoundingClientRect().right);if(sh>0&&sh!==this.state.heroShift)this.setState({heroShift:sh});}
-  componentDidUpdate(pp,ps0){{const lock=!!this.state.onb;const de=document.documentElement;if(lock!==this._onbLock){this._onbLock=lock;de.style.overflow=lock?'hidden':'';document.body.style.overflow=lock?'hidden':'';}}if(this.state.tab==='today'&&this.state.view==='desktop')this.heroMeasure();if(this.state.tab==='about'&&!this.state.aboutMd&&!this._abLoading){this._abLoading=true;fetch('about.md').then(r=>r.ok?r.text():Promise.reject()).then(t=>this.setState({aboutMd:t})).catch(()=>this.setState({aboutMd:'Couldn\u2019t load this page. Check your connection and try again.'})).finally(()=>{this._abLoading=false;});}
+  componentDidUpdate(pp,ps0){{const r=this.state.run;const want=!!(r&&!r.done);if(want!==this._wlWant)this.wakeSet(want);}{const lock=!!this.state.onb;const de=document.documentElement;if(lock!==this._onbLock){this._onbLock=lock;de.style.overflow=lock?'hidden':'';document.body.style.overflow=lock?'hidden':'';}}if(this.state.tab==='today'&&this.state.view==='desktop')this.heroMeasure();if(this.state.tab==='about'&&!this.state.aboutMd&&!this._abLoading){this._abLoading=true;fetch('about.md').then(r=>r.ok?r.text():Promise.reject()).then(t=>this.setState({aboutMd:t})).catch(()=>this.setState({aboutMd:'Couldn\u2019t load this page. Check your connection and try again.'})).finally(()=>{this._abLoading=false;});}
 if(ps0&&ps0.rcId!==this.state.rcId&&SP_OK_HOST()){const R2=RECIPES.find(r=>r.id===this.state.rcId);try{history.replaceState(null,'',R2&&RC_PUBLIC(R2)?'/recipe/'+R2.id:'/');}catch(e){}}
     if(this.props.showOnboarding&&!(pp&&pp.showOnboarding)&&!this.state.onb)this.onbOpen(true);
     {const o=this.state.onb;const el=this._onbSc;if(o&&el){const key=o.step+'|'+o.phase;if(this._onbKey!==key){this._onbKey=key;el.scrollTop=0;}else if(this._onbMsgN!==undefined&&o.msgs.length>this._onbMsgN)el.scrollTo({top:el.scrollHeight,behavior:'smooth'});this._onbMsgN=o.msgs.length;}else{this._onbKey=undefined;this._onbMsgN=undefined;}}{const c=this.state.cam,o=ps0&&ps0.cam;if(c&&(!o||o.step!==c.step||o.frame!==c.frame||!!o.pending!==!!c.pending||o.err!==c.err))requestAnimationFrame(()=>this.camGuide());}const ps={tab:this._lastTab,...(ps0||{})};const _t=this.state.tab;if(this.state.run&&!this.state.playerHidden&&this.measurePlayer){cancelAnimationFrame(this._pmr);this._pmr=requestAnimationFrame(this.measurePlayer);}if(ps.tab!==this.state.tab||ps.w!==this.state.w||!!ps.run!==!!this.state.run||ps.disp!==this.state.disp)setTimeout(()=>this.measureHero&&this.measureHero(),60);this._lastTab=_t;}
-  componentWillUnmount(){clearInterval(this._onbIv);clearInterval(this._onbRecIv);this.camStop();window.removeEventListener('resize',this.measureHero);window.removeEventListener('resize',this.onResize);window.removeEventListener('keydown',this.onKey);clearInterval(this.iv);clearInterval(this.tlv);}
+  componentWillUnmount(){this.wakeSet(false);document.removeEventListener('visibilitychange',this._wlVis);clearInterval(this._onbIv);clearInterval(this._onbRecIv);this.camStop();window.removeEventListener('resize',this.measureHero);window.removeEventListener('resize',this.onResize);window.removeEventListener('keydown',this.onKey);clearInterval(this.iv);clearInterval(this.tlv);}
   persist(k,v){save(k,v);this.setState({[k]:v});}
   rcUrl(id){return location.origin+'/recipe/'+id;}
   rcCopied(){this.setState({rcCopy:'ok',rcShareMenu:false});clearTimeout(this._rcT);this._rcT=setTimeout(()=>this.setState({rcCopy:''}),2000);}
@@ -1566,12 +1567,23 @@ if(ps0&&ps0.rcId!==this.state.rcId&&SP_OK_HOST()){const R2=RECIPES.find(r=>r.id=
       else m='Spotify error '+r.status+(er.message?': '+er.message:'');throw new Error(m);}
     return j;}
   spDo(fn,ok){return fn().then(()=>{this.setState({spMsg:''});if(ok)this.flash(ok);setTimeout(()=>this.spPoll(),500);return true;}).catch(e=>{this.setState({spMsg:e.message});this.flash(e.message);return false;});}
-  async spPoll(){if(!this.state.sp)return;try{const j=await this.sp('GET','/me/player');this.setState({spState:j||{},spMsg:j?'':'No active device. Open Spotify on a device to control it from here.'});}catch(e){this.setState({spMsg:e.message});}}
+  async spPoll(){if(!this.state.sp)return;try{const j=await this.sp('GET','/me/player');if(j&&j.device&&j.device.id){this._spLastDev=j.device.id;try{localStorage.setItem(P+'spDev',j.device.id);}catch(e){}}
+      if(!j&&this.state.spState&&this.state.spState.device){this.setState({spState:Object.assign({},this.state.spState,{is_playing:false}),spMsg:''});return;}
+      this.setState({spState:j||{},spMsg:j?'':'No active device. Open Spotify on a device to control it from here.'});}catch(e){if(/No active Spotify device/.test(e.message)&&this.state.spState&&this.state.spState.device)return;this.setState({spMsg:e.message});}}
+  async wakeSet(on){this._wlWant=on;if(!this._wlVis){this._wlVis=()=>{if(document.visibilityState==='visible'&&this._wlWant&&!this._wl)this.wakeSet(true);};document.addEventListener('visibilitychange',this._wlVis);}
+    if(on){if(this._wl||this._wlBusy)return;this._wlBusy=true;try{if('wakeLock' in navigator){this._wl=await navigator.wakeLock.request('screen');this._wl.addEventListener('release',()=>{this._wl=null;});}else this.wakeVideo(true);}catch(e){this.wakeVideo(true);}finally{this._wlBusy=false;}}
+    else{this.wakeVideo(false);if(this._wl){try{await this._wl.release();}catch(e){}this._wl=null;}}}
+  wakeVideo(on){if(on){if(!this._wlv){const v=document.createElement('video');v.muted=true;v.loop=true;v.playsInline=true;v.setAttribute('playsinline','');v.setAttribute('muted','');v.style.cssText='position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;left:0;top:0';v.src='hero/onboarding.mp4';document.body.appendChild(v);this._wlv=v;}this._wlv.play().catch(()=>{});}else if(this._wlv){this._wlv.pause();}}
+  spLastDev(){return this._spLastDev||(this.state.spState&&this.state.spState.device&&this.state.spState.device.id)||localStorage.getItem(P+'spDev')||null;}
+  async spResume(){try{await this.sp('PUT','/me/player/play');}catch(e){if(!/No active Spotify device/.test(e.message))throw e;
+      let id=this.spLastDev();const dv=await this.sp('GET','/me/player/devices').catch(()=>null);const list=(dv&&dv.devices)||[];if(!id||!list.find(d=>d.id===id)){const d=list.find(d=>d.is_active)||list[0];id=d&&d.id;}
+      if(!id)throw new Error('Spotify isn\u2019t open on any device. Open the Spotify app, then tap play again.');
+      await this.sp('PUT','/me/player',{device_ids:[id],play:true});}}
   async spLoad(){try{const pl=await this.sp('GET','/me/playlists?limit=50');const dv=await this.sp('GET','/me/player/devices');this.setState({spPlaylists:((pl&&pl.items)||[]).filter(Boolean).map(x=>({id:x.id,name:x.name})),spDevices:(dv&&dv.devices)||[]});this.spPoll();}catch(e){this.setState({spMsg:e.message});}}
   plId(k){const st=this.state.settings;return (st.spMap||{})[k]||plFromUrl((st.playlists||{})[k]);}
   spDev(){const d=this.state.spState&&this.state.spState.device;return d&&d.id?'?device_id='+d.id:'';}
   spPlayProfile(k){const id=this.plId(k);if(!id){this.flash('No playlist chosen for '+k+' yet (Music tab).');return Promise.resolve(false);}return this.spDo(()=>this.sp('PUT','/me/player/play'+this.spDev(),{context_uri:'spotify:playlist:'+id}),'Playing '+k);}
-  spPlayPause(){const on=this.state.spState&&this.state.spState.is_playing;return this.spDo(()=>this.sp('PUT',on?'/me/player/pause':'/me/player/play'));}
+  spPlayPause(){const on=this.state.spState&&this.state.spState.is_playing;return this.spDo(()=>on?this.sp('PUT','/me/player/pause'):this.spResume());}
   spShuffle(v){const cur=!!(this.state.spState&&this.state.spState.shuffle_state);const nv=v===undefined?!cur:v;return this.spDo(()=>this.sp('PUT','/me/player/shuffle?state='+nv),'Shuffle '+(nv?'on':'off'));}
   spAddCurrent(k){const it=this.state.spState&&this.state.spState.item;if(!it||!it.uri){this.flash('No track is playing right now.');return;}const prof=k||(this.state.run&&this.state.run.profile)||'POWER HOUSE';const id=this.plId(prof);if(!id){this.flash('Choose a playlist for '+prof+' first.');return;}
     return this.spDo(()=>this.sp('POST','/playlists/'+id+'/items',{uris:[it.uri]}),'Added \u201C'+it.name+'\u201D to '+prof);}
@@ -1650,7 +1662,7 @@ if(ps0&&ps0.rcId!==this.state.rcId&&SP_OK_HOST()){const R2=RECIPES.find(r=>r.id=
     if(has('previous','back','הקודם')){this.spDo(()=>this.sp('POST','/me/player/previous'));return 'Previous track…';}
     if(has('next','skip','הבא')){this.spDo(()=>this.sp('POST','/me/player/next'));return 'Next track…';}
     if(has('pause','stop','עצור')){this.spDo(()=>this.sp('PUT','/me/player/pause'));return 'Pausing music…';}
-    if(has('play','resume','נגן','המשך')){this.spDo(()=>this.sp('PUT','/me/player/play'));return 'Playing music…';}
+    if(has('play','resume','נגן','המשך')){this.spDo(()=>this.spResume());return 'Playing music…';}
     return 'Music command not recognised. No action taken.';}
   meterStart(stream,key,opt){opt=opt||{};try{this._meters=this._meters||{};this.meterStop(key);const AC=window.AudioContext||window.webkitAudioContext;const ctx=new AC();const src=ctx.createMediaStreamSource(stream);const an=ctx.createAnalyser();an.fftSize=512;src.connect(an);
       const buf=new Uint8Array(an.fftSize);const hist=[];let last=0;const m={ctx,raf:0};this._meters[key]=m;
