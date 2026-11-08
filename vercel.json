@@ -32,6 +32,10 @@
     {
       "source": "/callback",
       "destination": "/index.html"
+    },
+    {
+      "source": "/recipe/:id",
+      "destination": "/api/recipe?id=:id"
     }
   ]
 }

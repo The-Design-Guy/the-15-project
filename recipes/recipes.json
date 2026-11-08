@@ -1,0 +1,30 @@
+[
+ {
+  "id": "citrus-smoothie",
+  "title": "Citrus Smoothie",
+  "category": "Smoothie",
+  "description": "Smoothie · 5 min · serves 1. Mandarins, Orange, Lemon juice, Greek yogurt (plain), Ice, Fresh mint.",
+  "image": "recipes/citrus-smoothie-1x1.jpg"
+ },
+ {
+  "id": "green-smoothie",
+  "title": "Green Smoothie",
+  "category": "Smoothie",
+  "description": "Smoothie · 5 min · serves 1. Green apple, Cucumber, Lime juice, Fresh mint, Cold water, Ice.",
+  "image": "recipes/green-smoothie-1x1.jpg"
+ },
+ {
+  "id": "carrot-apple-ginger",
+  "title": "Carrot, Apple & Ginger",
+  "category": "Smoothie",
+  "description": "Smoothie · 8 min · serves 1. Carrots, Red apple, Fresh ginger, Cold water, Ice.",
+  "image": "recipes/carrot-apple-ginger-1x1.jpg"
+ },
+ {
+  "id": "blueberry-ice-cream",
+  "title": "Blueberry Ice Cream",
+  "category": "Dessert",
+  "description": "Dessert · 5 min · serves 2. Frozen blueberries, Greek yogurt (plain), Milk, Honey (optional).",
+  "image": "recipes/blueberry-ice-cream-1x1.jpg"
+ }
+]
