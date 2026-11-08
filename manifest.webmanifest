@@ -4,8 +4,8 @@
   "description": "15 minutes. Stronger every day.",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#031A17",
-  "theme_color": "#031A17",
+  "background_color": "#000000",
+  "theme_color": "#000000",
   "icons": [
     {
       "src": "brand/favicon.png",
