@@ -599,7 +599,7 @@ html,body,*{scrollbar-color:#CAF70F #0B0B0B;}
 <article aria-label="About" style="max-width:720px;display:flex;flex-direction:column;gap:18px;padding-bottom:24px">
 <sc-if value="{{ about.loading }}"><div style="font-size:15px;color:#A9ACB1">Loading…</div></sc-if>
 <sc-for list="{{ about.blocks }}" as="b">
-<sc-if value="{{ b.h }}"><h2 style="margin:18px 0 0;font-family:'Barlow Condensed';font-style:italic;font-weight:800;font-size:19px;line-height:1.1;letter-spacing:1.5px;color:#FFFFFF;text-transform:uppercase;text-wrap:pretty;white-space:pre-line"><span aria-hidden="true" style="color:#CAF70F;margin-right:6px">/</span>{{ b.text }}</h2></sc-if>
+<sc-if value="{{ b.h }}"><h2 style="margin:18px 0 0;font-family:'Barlow Condensed';font-style:italic;font-weight:800;font-size:19px;line-height:1.1;letter-spacing:1.5px;color:#FFFFFF;text-transform:uppercase;text-wrap:pretty;white-space:pre-line"><span aria-hidden="true" style="color:#CAF70F;margin-right:6px">/</span><sc-for list="{{ b.hs }}" as="g"><span style="color:{{ g.c }}">{{ g.t }}</span></sc-for></h2></sc-if>
 <sc-if value="{{ b.p }}"><p style="margin:0;font-size:17px;line-height:1.6;color:#A9ACB1;text-wrap:pretty;white-space:pre-line"><sc-for list="{{ b.segs }}" as="g"><span style="font-weight:{{ g.w }};font-style:{{ g.i }};color:{{ g.c }}">{{ g.t }}</span></sc-for></p></sc-if>
 <sc-if value="{{ b.q }}"><p style="margin:4px 0;font-family:'Barlow Condensed';font-style:italic;font-weight:700;font-size:calc(30px - var(--tmob,0px));line-height:calc(1.05em + var(--lhC,0px));color:#FFFFFF;text-wrap:balance"><sc-for list="{{ b.segs }}" as="g"><span style="color:{{ g.c }}">{{ g.t }}</span></sc-for></p></sc-if>
 <sc-if value="{{ b.hr }}"><div aria-hidden="true" style="height:1px;background:#2E2E2E;margin:14px 0 0"></div></sc-if>
@@ -609,7 +609,7 @@ html,body,*{scrollbar-color:#CAF70F #0B0B0B;}
 <div aria-hidden="true" style="position:absolute;inset:0;display:{{ aboutTailGrad }};background:linear-gradient(180deg,#000000 0%,rgba(0,0,0,0) 40%),linear-gradient(0deg,#000000 0px,#000000 10px,rgba(0,0,0,0.55) calc(10px + 5%),rgba(0,0,0,0) calc(10px + 14%))"></div>
 <div style="position:relative;display:flex;flex-direction:column;gap:18px;margin-top:{{ aboutTailInnerMT }}">
 <sc-for list="{{ about.tail }}" as="b">
-<sc-if value="{{ b.h }}"><h2 style="margin:18px 0 0;font-family:'Barlow Condensed';font-style:italic;font-weight:800;font-size:19px;line-height:1.1;letter-spacing:1.5px;color:#FFFFFF;text-transform:uppercase;text-wrap:pretty;white-space:pre-line"><span aria-hidden="true" style="color:#CAF70F;margin-right:6px">/</span>{{ b.text }}</h2></sc-if>
+<sc-if value="{{ b.h }}"><h2 style="margin:18px 0 0;font-family:'Barlow Condensed';font-style:italic;font-weight:800;font-size:19px;line-height:1.1;letter-spacing:1.5px;color:#FFFFFF;text-transform:uppercase;text-wrap:pretty;white-space:pre-line"><span aria-hidden="true" style="color:#CAF70F;margin-right:6px">/</span><sc-for list="{{ b.hs }}" as="g"><span style="color:{{ g.c }}">{{ g.t }}</span></sc-for></h2></sc-if>
 <sc-if value="{{ b.p }}"><p style="margin:{{ b.mt }} 0 0;font-size:17px;line-height:1.6;color:#A9ACB1;text-wrap:pretty;white-space:pre-line"><sc-for list="{{ b.segs }}" as="g"><span style="font-weight:{{ g.w }};font-style:{{ g.i }};color:{{ g.c }}">{{ g.t }}</span></sc-for></p></sc-if>
 <sc-if value="{{ b.q }}"><p style="margin:4px 0;font-family:'Barlow Condensed';font-style:italic;font-weight:700;font-size:calc(30px - var(--tmob,0px));line-height:calc(1.05em + var(--lhC,0px));color:#FFFFFF;text-wrap:balance"><sc-for list="{{ b.segs }}" as="g"><span style="color:{{ g.c }}">{{ g.t }}</span></sc-for></p></sc-if>
 <sc-if value="{{ b.hr }}"><div aria-hidden="true" style="height:1px;background:#2E2E2E;margin:14px 0 0"></div></sc-if>
@@ -921,7 +921,7 @@ html,body,*{scrollbar-color:#CAF70F #0B0B0B;}
 <div style="max-width:720px;margin:0 auto;padding:68px 18px 72px;display:flex;flex-direction:column;gap:18px">
 <h1 style="margin:0;font-family:'Barlow Condensed';font-style:italic;font-weight:700;font-size:52px;line-height:calc(0.85em + var(--lhL,0px));text-transform:uppercase">About</h1>
 <sc-for list="{{ aboutPop.blocks }}" as="b">
-<sc-if value="{{ b.h }}"><h2 style="margin:18px 0 0;font-family:'Barlow Condensed';font-style:italic;font-weight:800;font-size:19px;line-height:1.1;letter-spacing:1.5px;color:#FFFFFF;text-transform:uppercase;white-space:pre-line"><span aria-hidden="true" style="color:#CAF70F;margin-right:6px">/</span>{{ b.text }}</h2></sc-if>
+<sc-if value="{{ b.h }}"><h2 style="margin:18px 0 0;font-family:'Barlow Condensed';font-style:italic;font-weight:800;font-size:19px;line-height:1.1;letter-spacing:1.5px;color:#FFFFFF;text-transform:uppercase;white-space:pre-line"><span aria-hidden="true" style="color:#CAF70F;margin-right:6px">/</span><sc-for list="{{ b.hs }}" as="g"><span style="color:{{ g.c }}">{{ g.t }}</span></sc-for></h2></sc-if>
 <sc-if value="{{ b.p }}"><p style="margin:0;font-size:17px;line-height:1.6;color:#A9ACB1;text-wrap:pretty;white-space:pre-line"><sc-for list="{{ b.segs }}" as="g"><span style="font-weight:{{ g.w }};font-style:{{ g.i }};color:{{ g.c }}">{{ g.t }}</span></sc-for></p></sc-if>
 <sc-if value="{{ b.q }}"><p style="margin:4px 0;font-family:'Barlow Condensed';font-style:italic;font-weight:700;font-size:30px;line-height:calc(1.05em + var(--lhC,0px));color:#FFFFFF;text-wrap:balance"><sc-for list="{{ b.segs }}" as="g"><span style="color:{{ g.c }}">{{ g.t }}</span></sc-for></p></sc-if>
 <sc-if value="{{ b.hr }}"><div aria-hidden="true" style="height:1px;background:#2E2E2E;margin:14px 0 0"></div></sc-if>
@@ -2011,7 +2011,7 @@ if(ps0&&ps0.rcId!==this.state.rcId&&SP_OK_HOST()){const R2=RECIPES.find(r=>r.id=
     return blocks.filter(b=>!(b.p&&b.segs.every(g=>!g.t.trim())));}
   aboutBlocks(md){const segs=t=>{const out=[];t.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/).forEach(x=>{if(!x)return;const b=/^\*\*[^*]+\*\*$/.test(x),it=!b&&/^\*[^*]+\*$/.test(x);out.push({t:b?x.slice(2,-2):it?x.slice(1,-1):x,w:b?700:400,i:it?'italic':'normal',c:b?'#FFFFFF':'inherit'});});return out;};
     const out=[];for(const para of md.replace(/\r/g,'').split(/\n{2,}/)){const ls=para.split('\n').map(x=>x.replace(/\s+$/,'')).filter(x=>x.trim());if(!ls.length)continue;
-      if(/^# /.test(ls[0]))continue;if(/^## /.test(ls[0])){out.push({h:true,text:ls[0].slice(3).replace(/ \| /g,'\n')});continue;}if(/^-{3,}$/.test(ls[0])){out.push({hr:true});continue;}
+      if(/^# /.test(ls[0]))continue;if(/^## /.test(ls[0])){{const ht=ls[0].slice(3).replace(/ \| /g,'\n');out.push({h:true,text:ht.replace(/==/g,''),hs:ht.split(/(==[^=]+==)/).filter(Boolean).map(x=>/^==.*==$/.test(x)?{t:x.slice(2,-2),c:'#CAF70F'}:{t:x,c:'inherit'})});}continue;}if(/^-{3,}$/.test(ls[0])){out.push({hr:true});continue;}
       if(ls.length===1&&/^\*\*[^*]+\*\*$/.test(ls[0])){out.push({q:true,segs:ls[0].slice(2,-2).split(/(==[^=]+==)/).filter(Boolean).map(x=>/^==.*==$/.test(x)?{t:x.slice(2,-2),c:'#CAF70F'}:{t:x,c:'#FFFFFF'})});continue;}
       out.push({p:true,segs:segs(ls.join('\n'))});}
     return out;}
