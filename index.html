@@ -1568,7 +1568,7 @@ class Component extends DCLogic {
       wForm:{date:iso(new Date()),kg:'',waist:'',energy:''},pose:'Front',toast:''};
   })();
   componentDidMount(){
-    this._swKey=e=>{if(e.key!=='ArrowRight'&&e.key!=='ArrowLeft')return;const t=e.target;if(t&&(/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)||t.isContentEditable))return;const r=this.state.run;if(!r||r.done||this.state.playerHidden)return;const mob=this.state.w<600||this.state.view==='mobile'||this.props.mobileMode;if(!mob)return;e.preventDefault();this.swAskSet(e.key==='ArrowRight'?'next':'left');};
+    this._swKey=e=>{if(e.key!=='ArrowRight'&&e.key!=='ArrowLeft')return;const t=e.target;if(t&&(/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)||t.isContentEditable))return;const r=this.state.run;if(!r||r.done||this.state.playerHidden)return;const mob=this.state.w<600||this.state.view==='mobile'||this.props.mobileMode;if(!mob)return;e.preventDefault();this.swAskSet(e.key==='ArrowLeft'?'next':'left');};
     window.addEventListener('keydown',this._swKey);
     this.pwaInit();
     this._gdLiveT=setTimeout(()=>this.gdLive(),1500);this._gdIv=setInterval(()=>this.gdLive(),30000);this._gdVis=()=>{if(!document.hidden)this.gdLive();};document.addEventListener('visibilitychange',this._gdVis);window.addEventListener('focus',this._gdVis);window.addEventListener('online',this._gdVis);
@@ -2571,7 +2571,7 @@ if(ps0&&ps0.rcId!==this.state.rcId&&SP_OK_HOST()){const R2=RECIPES.find(r=>r.id=
           yes:()=>{close();this._swLeftAt=0;if(kind==='next')this.nextEx();else if(kind==='prev')this.prevExStrict();else this.restartEx();this.playerTop();},
           ts:e=>{const t=e.touches&&e.touches[0];this._sw=t?{x:t.clientX,y:t.clientY,at:Date.now()}:null;},
           te:e=>{const a=this._sw;this._sw=null;const t=e.changedTouches&&e.changedTouches[0];if(!a||!t)return;const dx=t.clientX-a.x,dy=t.clientY-a.y;if(Math.abs(dx)<70||Math.abs(dx)<Math.abs(dy)*1.5||Date.now()-a.at>800)return;
-            this.swAskSet(dx>0?'next':'left');}};})(),prevEx:()=>{this.prevEx();this.playerTop();},skipSeg:()=>{this.skipSeg();this.playerTop();},
+            this.swAskSet(dx<0?'next':'left');}};})(),prevEx:()=>{this.prevEx();this.playerTop();},skipSeg:()=>{this.skipSeg();this.playerTop();},
       setEasier:()=>this.setVariant('easier'),setHarder:()=>this.setVariant('harder'),rpeOpts,techOpts,saveSession:()=>this.saveSession(),discardSession:()=>this.discardSession(),
       sheetMusic:s.sheet==='music',sheetVoice:s.sheet==='voice',openMusic:()=>this.setState({sheet:'music'}),openVoice:()=>this.qmStart(),closeSheet:()=>{this.recStop(true);this.setState({sheet:null});},musicProfiles,
       voiceText:s.voiceText,setVoiceText:e=>this.setState({voiceText:e.target.value}),voiceKey:e=>{if(e.key==='Enter')this.runVoice();},runVoice:()=>this.runVoice(),voiceExamples,voiceMsg:s.voiceMsg,hasVoiceMsg:!!s.voiceMsg,
