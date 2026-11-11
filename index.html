@@ -39,6 +39,8 @@ html,body,*{scrollbar-color:#CAF70F #0B0B0B;}
 @keyframes f15splashVid{0%{opacity:0}26.8%{opacity:1}82.1%{opacity:1}100%{opacity:0}}
 @keyframes f15splashLogo{0%{transform:scale(1);opacity:0;background-color:#CAF70F}16%{transform:scale(1);opacity:1}32.3%{background-color:#CAF70F}64.5%{background-color:#000000}100%{transform:scale(34);opacity:1;background-color:#000000}}
 @keyframes f15splash{0%{transform:scale(.85);opacity:0}10%{transform:scale(1);opacity:1}22%{transform:scale(1.04)}100%{transform:scale(34);opacity:1}}
+@keyframes f15blink{0%,100%{opacity:1}50%{opacity:0.15}}
+@keyframes f15grWipe{from{-webkit-mask-position:0 100%;mask-position:0 100%}to{-webkit-mask-position:0 0;mask-position:0 0}}
 @keyframes f15SwipeR{0%{transform:translateX(-34px) rotate(58deg);opacity:0}18%{opacity:1}75%{transform:translateX(34px) rotate(58deg);opacity:1}100%{transform:translateX(40px) rotate(58deg);opacity:0}}
 @keyframes f15SwipeL{0%{transform:translateX(34px) rotate(-58deg);opacity:0}18%{opacity:1}75%{transform:translateX(-34px) rotate(-58deg);opacity:1}100%{transform:translateX(-40px) rotate(-58deg);opacity:0}}
 @keyframes f15SwipeHand{0%{transform:translateY(32px) rotate(-32deg);opacity:0}18%{opacity:1}70%{transform:translateY(4px) rotate(-32deg);opacity:1}100%{transform:translateY(0) rotate(-32deg);opacity:0}}
@@ -2027,6 +2029,7 @@ if(ps0&&ps0.rcId!==this.state.rcId&&SP_OK_HOST()){const R2=RECIPES.find(r=>r.id=
   freezeRingEl(){const on=!!(this.state.spState&&this.state.spState.is_playing)||!!this.state.frLocal;const key=on?'p':'s';if(this._frKey!==key){this._frKey=key;const t=(on?'PAUSE MUSIC':'PLAY MUSIC')+' \u2022 ',txt=t+t+t;this._frEl=React.createElement('svg',{key:'fr',viewBox:'0 0 200 200','aria-hidden':'true',style:{position:'absolute',inset:0,width:'100%',height:'100%',overflow:'visible',animation:'f15spin 14s linear infinite',transformOrigin:'50% 50%'}},
     React.createElement('defs',null,React.createElement('path',{id:'f15ring',d:'M100,100 m-80,0 a80,80 0 1,1 160,0 a80,80 0 1,1 -160,0'})),
     React.createElement('text',{fill:'#000000',style:{fontFamily:"'Barlow Condensed'",fontWeight:700,fontStyle:'italic',fontSize:'17px',letterSpacing:'2px'}},React.createElement('textPath',{href:'#f15ring',textLength:'500',lengthAdjust:'spacing'},txt)));}return this._frEl;}
+  grSpeak(text){const g=this.state.settings.cdVoice||'off';if(g==='off'||!window.speechSynthesis)return;try{const u=new SpeechSynthesisUtterance(text);u.lang='en-US';u.rate=1;u.volume=1;const v=this.cdVoicePick('female');if(v){u.voice=v;u.pitch=1;}else u.pitch=1.3;speechSynthesis.cancel();speechSynthesis.resume();speechSynthesis.speak(u);}catch(e){}}
   say(n){const g=this.state.settings.cdVoice||'off';if(g==='beep'){this.pip(1000,0.1);return;}if(g==='off'||!window.speechSynthesis)return;const words=['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten'];
     try{const u=new SpeechSynthesisUtterance(words[n]);u.lang='en-US';u.rate=1.05;u.volume=1;const v=this.cdVoicePick(g);if(v){u.voice=v;u.pitch=1;}else u.pitch=g==='female'?1.3:0.75;
     if(speechSynthesis.speaking||speechSynthesis.pending)speechSynthesis.cancel();speechSynthesis.resume();speechSynthesis.speak(u);}catch(e){}}
@@ -2036,7 +2039,8 @@ if(ps0&&ps0.rcId!==this.state.rcId&&SP_OK_HOST()){const R2=RECIPES.find(r=>r.id=
     this._last=undefined;
     try{this.ac=this.ac||new (window.AudioContext||window.webkitAudioContext)();}catch(e){}
     this.setState({fb:{rpe:null,tech:null},sheet:null,voiceMsg:'',playerHidden:false,menu:false});
-    const gr0=Date.now();this.setState({getReady:gr0});clearTimeout(this._grT);clearInterval(this._grIv);this._grIv=setInterval(()=>this.forceUpdate(),200);
+    const gr0=Date.now();this.setState({getReady:gr0});clearTimeout(this._grT);clearTimeout(this._grT2);clearInterval(this._grIv);this._grIv=setInterval(()=>this.forceUpdate(),100);
+    {const wn=(W[wid]&&W[wid].name)||'';this.grSpeak((wn?wn+' workout. ':'')+'Get ready.');this._grT2=setTimeout(()=>this.grSpeak('Start!'),5000);}
     this._grT=setTimeout(()=>{clearInterval(this._grIv);this.setState({getReady:null});const rr=this.state.run;if(rr&&rr.pausedAt&&rr.startedAt===gr0)this.setRun(Object.assign({},rr,{pausedMs:rr.pausedMs+(Date.now()-rr.pausedAt),pausedAt:null}));},6200);
     this.setRun({wid,kind,level:this.state.settings.level,profile:W[wid].profile,startedAt:gr0,pausedAt:gr0,pausedMs:0,offset:0,variants:{},done:false,early:false});
   }
@@ -2311,10 +2315,11 @@ if(ps0&&ps0.rcId!==this.state.rcId&&SP_OK_HOST()){const R2=RECIPES.find(r=>r.id=
     const pPhotoInsetV=mob?'18px':(wide?'42px':'0'),pRowTopV=mob?'14px':(wide?'-72px':'22px');const doneConfetti=(false&&s.run&&s.run.done&&!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)&&this._cfDoneFor!==s.run.startedAt)?React.createElement('canvas',{key:'dconf'+s.run.startedAt,ref:el=>{if(el&&!el._run){this.onbConfettiRef(el);const k=s.run.startedAt;setTimeout(()=>{this._cfDoneFor=k;this.forceUpdate();},4200);}},'aria-hidden':true,style:{position:'fixed',inset:0,width:'100vw',height:'100vh',zIndex:90,pointerEvents:'none'}}):null;
     const grEl=(()=>{if(!s.getReady)return null;const dt=Date.now()-s.getReady;const n=5-Math.floor(dt/1000);const go=n<=0;const lbl=go?'GO!!!':String(n);const h=React.createElement;
       if(this._grFor!==s.getReady){this._grFor=s.getReady;const V=this.isFemale()?HERO_VIDS_W:HERO_VIDS;this._grVid=V[Math.floor(Math.random()*V.length)];}
-      return h('div',{role:'status','aria-live':'assertive',style:{position:'fixed',top:0,bottom:0,left:0,width:wide?'min(calc(100vh - 120px),52vw)':'100%',right:wide?'auto':0,zIndex:75,background:'#000000',color:'#FFFFFF',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:mob?'8px':'16px',overflow:'hidden'}},
+      const rmGR=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;const wipe=dt>=5350&&!rmGR;const blinkDur=n===3?'0.5s':n===2?'0.3s':n===1?'0.16s':null;
+      return h('div',{role:'status','aria-live':'assertive',style:Object.assign({position:'fixed',top:0,bottom:0,left:0,width:wide?'min(calc(100vh - 120px),52vw)':'100%',right:wide?'auto':0,zIndex:75,background:'#000000',color:'#FFFFFF',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:mob?'8px':'16px',overflow:'hidden'},wipe?{WebkitMaskImage:'linear-gradient(180deg,transparent 0%,transparent 40%,#000 60%,#000 100%)',maskImage:'linear-gradient(180deg,transparent 0%,transparent 40%,#000 60%,#000 100%)',WebkitMaskSize:'100% 250%',maskSize:'100% 250%',animation:'f15grWipe 0.8s ease-in forwards'}:{})},
         h('video',{key:'grv',src:this._grVid,autoPlay:true,muted:true,loop:true,playsInline:true,'aria-hidden':true,style:{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',zIndex:0}}),
         h('div',{key:'grs','aria-hidden':true,style:{position:'absolute',inset:0,zIndex:1,background:'rgba(0,0,0,0.55)'}}),
-        h('span',{style:{position:'relative',zIndex:2,fontFamily:"'Barlow Condensed'",fontStyle:'italic',fontWeight:700,fontSize:mob?'36px':'48px',letterSpacing:'2px',textTransform:'uppercase',color:'#CAF70F',textShadow:'0 2px 16px rgba(0,0,0,0.6)'}},'Get ready'),
+        h('span',{style:{position:'relative',zIndex:2,fontFamily:"'Barlow Condensed'",fontStyle:'italic',fontWeight:700,fontSize:mob?'36px':'48px',letterSpacing:'2px',textTransform:'uppercase',color:'#CAF70F',textShadow:'0 2px 16px rgba(0,0,0,0.6)',animation:blinkDur&&!rmGR?'f15blink '+blinkDur+' linear infinite':'none'},key:'gr-'+(blinkDur||'s')},'Get ready'),
         h('span',{key:lbl,style:{position:'relative',zIndex:2,textShadow:'0 2px 24px rgba(0,0,0,0.6)',fontFamily:"'Barlow Condensed'",fontStyle:'italic',fontWeight:700,fontSize:go?(mob?'120px':'200px'):(mob?'220px':'360px'),lineHeight:0.85,color:go?'#CAF70F':'#FFFFFF',animation:'f15count 1s ease-out forwards'}},lbl));})();
     const exPanel=!!(wide&&s.run&&!s.playerHidden&&s.exId);
     const tabs=[['plan','Plan'],['progress','Progress'],['fuel','Fuel'],['music','Music'],['settings','Settings'],['about','About']];
@@ -2424,7 +2429,7 @@ if(ps0&&ps0.rcId!==this.state.rcId&&SP_OK_HOST()){const R2=RECIPES.find(r=>r.id=
         profile:r.profile,recProfile:w.profile,spotifyUrl:(st.playlists||{})[r.profile]||('https://open.spotify.com/search/'+encodeURIComponent(PROFILES[r.profile].dir.split(' · ')[0]+' workout')),
         doneTitle:'Workout ended',doneLine:this.doneLine(r),doneMeta:w.name+' · '+fmt(Math.min(l.e,tot))+' of '+fmt(tot)+(r.early?' · ended early, and that\u2019s fine':'')};}
     const sum=(()=>{const r=s.run;if(!r||!r.done)return {show:false,stats:[]};const k=r.startedAt;if(s.sumDone===k)return {show:false,stats:[]};
-      if(this._sumFor!==k){this._sumFor=k;const fem=this.isFemale();const SP=fem?['woman-seated','woman-butterfly','rolled-mat','shoes']:['man-seated','man-hamstring','rolled-mat','shoes'];let last='';try{last=localStorage.getItem(P+'sumImg')||'';}catch(e){}let n;do{n=SP[Math.floor(Math.random()*SP.length)];}while(SP.length>1&&n===last);this._sumImg=n;try{localStorage.setItem(P+'sumImg',n);}catch(e){}
+      if(this._sumFor!==k){this._sumFor=k;const fem=this.isFemale();const SP=fem?['woman-seated','woman-butterfly']:['man-seated','man-hamstring'];let last='';try{last=localStorage.getItem(P+'sumImg')||'';}catch(e){}let n;do{n=SP[Math.floor(Math.random()*SP.length)];}while(SP.length>1&&n===last);this._sumImg=n;try{localStorage.setItem(P+'sumImg',n);}catch(e){}
         clearTimeout(this._sumT);this._sumT=setTimeout(()=>this.setState({sumIn:k}),1000);}
       const l=this.locate(r),tot=this.total(r),secs=Math.min(l.e,tot);let moves=0,t=0;const mv=[];l.segs.forEach(sg=>{if(sg.type==='work'&&t<secs-0.5){moves++;if(sg.ex&&EX[sg.ex]&&!mv.includes(sg.ex))mv.push(sg.ex);}t+=sg.dur;});
       const w=W[r.wid]||{name:'Workout'};const hist=s.history||[];const first=hist.length===0;
@@ -2432,7 +2437,8 @@ if(ps0&&ps0.rcId!==this.state.rcId&&SP_OK_HOST()){const R2=RECIPES.find(r=>r.id=
       for(let i=0;i<400;i++){const di=iso(d);if(startIso&&di<startIso)break;const wid=this.dayWid(d);if(wid==='REST'||wid==='EMMA'){if(done.has(di)&&di!==todayIso)streak++;}else if(done.has(di))streak++;else if(di!==todayIso)break;d.setDate(d.getDate()-1);}
       const line=first?'Day one is done. That\u2019s the hardest one.':(streak>1?'You\u2019ve stuck to your plan '+streak+' days in a row.':'Back on track today. Let\u2019s make it two in a row.');
       const cfOn=s.sumCf===k&&!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);
-      return {show:true,img:'url("hero/done/'+this._sumImg+'.png")',pad:mob?'0 18px calc(28px + env(safe-area-inset-bottom))':'0 0 56px 56px',titleSize:mob?'50px':'72px',
+      const fb=this.isFemale()?'exercises/photo/woman/':'exercises/photo/';const rn=1+((k>>>0)%3);
+      return {show:true,img:'url("hero/done/'+this._sumImg+'.png"),url("'+fb+'rest-'+rn+'.png")',pad:mob?'0 18px calc(28px + env(safe-area-inset-bottom))':'0 0 56px 56px',titleSize:mob?'50px':'72px',
         eyebrow:(r.early?'Workout ended':'Workout complete')+' · '+((load('profile',{})||{}).name||st.name||'well done'),title:w.name,
         stats:[{v:fmt(secs),l:'Time'},{v:String(moves),l:moves===1?'Move':'Moves'},{v:String(hist.length+1),l:first?'Workout':'Workouts'}],
         hasMoves:mv.length>0,moves:mv.map(id=>({name:EX[id].name,photo:photoOf(id)})),cardW:mob?'calc((100% - 12px) / 1.75)':'200px',bleed:mob?'-18px':'0',bleedPad:mob?'18px':'0',streak:line,lineOp:s.sumIn===k?1:0,lineTf:s.sumIn===k?'none':'translateY(8px)',btn:first?'First workout done':'Another workout done',
