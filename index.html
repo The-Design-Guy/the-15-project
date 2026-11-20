@@ -1646,7 +1646,7 @@ class Component extends DCLogic {
     if(!dm){const done=load('onb',null);if(this.props.showOnboarding||(done&&done.skipped)||(!done&&!this.state.history.length&&!this.state.weights.length))this.onbOpen(false);
       const rmq=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;let seen=0;try{seen=+localStorage.getItem('f15.splashAt')||0;}catch(e){}
       const SPLASH_ALWAYS=true;
-      if(!rmq&&(SPLASH_ALWAYS||Date.now()-seen>30*60*1000)&&(this.state.view==='mobile'||window.innerWidth<760)){try{localStorage.setItem('f15.splashAt',String(Date.now()));}catch(e){}
+      if(SPLASH_ALWAYS||(!rmq&&Date.now()-seen>30*60*1000&&(this.state.view==='mobile'||window.innerWidth<760))){try{localStorage.setItem('f15.splashAt',String(Date.now()));}catch(e){}
         const prof=load('profile',{}),onbA=(load('onb',null)||{}).answers||{};const sx=prof.sex||onbA.sex;const pool=sx==='female'?HERO_VIDS_W:sx==='male'?HERO_VIDS:HERO_VIDS.concat(HERO_VIDS_W);let last='';try{last=localStorage.getItem('f15.splashVid')||'';}catch(e){}const opts=pool.filter(v=>v!==last);const vid=(opts.length?opts:pool)[Math.floor(Math.random()*(opts.length||pool.length))];try{localStorage.setItem('f15.splashVid',vid);}catch(e){}this._splashVid=vid;
         this.setState({splash:'grow'});this._spT1=setTimeout(()=>this.setState({splash:'black'}),5600);this._spT2=setTimeout(()=>this.setState({splash:null}),6300);}}
     window.addEventListener('resize',()=>{if(this.state.cam)this.camGuide();});
