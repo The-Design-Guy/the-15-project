@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#111417">
+<title>צילום החדר – HISTORGIC</title>
+<link rel="icon" href="brand/favicon.svg" type="image/svg+xml">
+<style>
+  :root { --ink:#111417; --muted:#6b7378; --line:#e3e6e8; --blue:#0088FF; --ok:#1aa66b; --bad:#d64545; }
+  * { box-sizing:border-box; }
+  html, body { margin:0; height:100%; background:#000; color:#fff; font-family:system-ui, -apple-system, "Segoe UI", Heebo, Arial, sans-serif; -webkit-tap-highlight-color:transparent; }
+  button { font:inherit; }
+  .screen { position:fixed; inset:0; display:flex; flex-direction:column; }
+  .screen[hidden] { display:none; }
+  /* start + review screens: light */
+  .light { background:#fff; color:var(--ink); overflow:auto; padding:max(20px, env(safe-area-inset-top)) 20px max(24px, env(safe-area-inset-bottom)); }
+  .light h1 { font-size:22px; margin:18px 0 8px; }
+  .light p { color:var(--muted); line-height:1.55; margin:0 0 14px; font-size:15px; }
+  .logo { height:26px; }
+  .steps { list-style:none; padding:0; margin:18px 0 22px; display:grid; gap:12px; }
+  .steps li { display:flex; gap:12px; align-items:flex-start; font-size:15px; line-height:1.45; }
+  .steps b { flex:none; width:26px; height:26px; border-radius:50%; background:var(--ink); color:#fff; display:grid; place-items:center; font-size:13px; }
+  .btn { display:block; width:100%; border:0; border-radius:14px; padding:16px; font-size:17px; font-weight:700; background:var(--ink); color:#fff; cursor:pointer; }
+  .btn.sec { background:#f1f3f4; color:var(--ink); margin-top:10px; }
+  .btn:disabled { opacity:.45; }
+  .err { color:var(--bad); font-size:14px; margin:10px 0; min-height:1em; }
+  /* camera */
+  #cam { background:#000; }
+  video { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+  .top { position:absolute; top:0; inset-inline:0; padding:max(14px, env(safe-area-inset-top)) 16px 30px; background:linear-gradient(#000a, #0000); text-align:center; }
+  .top .msg { font-size:17px; font-weight:700; text-shadow:0 1px 3px #000; }
+  .top .sub { font-size:13px; opacity:.85; margin-top:4px; }
+  .ring { position:absolute; left:50%; top:50%; width:150px; height:150px; margin:-75px 0 0 -75px; pointer-events:none; }
+  .ring svg { width:100%; height:100%; overflow:visible; }
+  .ring .needle { transition:transform .12s linear; transform-origin:75px 75px; }
+  .flash { position:absolute; inset:0; background:#fff; opacity:0; pointer-events:none; transition:opacity .25s; }
+  .flash.on { opacity:.7; transition:none; }
+  .bottom { position:absolute; bottom:0; inset-inline:0; padding:24px 14px max(16px, env(safe-area-inset-bottom)); background:linear-gradient(#0000, #000c); }
+  .thumbs { display:grid; grid-template-columns:repeat(8, minmax(0, 1fr)); gap:5px; margin-bottom:14px; }
+  .thumbs button { aspect-ratio:3/4; border-radius:6px; border:2px solid #fff5; background:#fff2 center/cover no-repeat; color:#fff; font-size:12px; font-weight:700; padding:0; position:relative; }
+  .thumbs button.next { border-color:var(--blue); box-shadow:0 0 0 2px #0088ff55; }
+  .thumbs button.up::after { content:''; position:absolute; inset:auto 3px 3px auto; width:8px; height:8px; border-radius:50%; background:var(--ok); }
+  .thumbs button.busy::after { content:''; position:absolute; inset:auto 3px 3px auto; width:8px; height:8px; border-radius:50%; background:#f5b400; }
+  .thumbs button.err { border-color:#ff4d4f; }
+  .thumbs button.err::after { content:'!'; position:absolute; inset:auto 2px 2px auto; width:14px; height:14px; line-height:14px; border-radius:50%; background:#ff4d4f; color:#fff; font-size:10px; }
+  .upbar { display:flex; white-space:nowrap; justify-content:space-between; align-items:center; gap:8px; font-size:13px; margin:-6px 0 10px; }
+  .upbar .e { color:#ff8a8a; font-weight:600; white-space:normal; text-align:start; }
+  .side button.go.off { background:#fff3; opacity:.75; }
+  .side button.go.ready { animation:pulse 1.2s ease-in-out infinite; }
+  @keyframes pulse { 50% { box-shadow:0 0 0 8px #0088ff44; } }
+  .tip { display:inline-block; margin-top:8px; font-size:13px; font-weight:600; background:#f5b400; color:#111; border-radius:999px; padding:5px 12px; }
+  .kn select, .kn input { font:inherit; font-size:16px; border:1px solid #e3e6e8; border-radius:10px; padding:11px; background:#fff; color:#111; width:100%; }
+  .kn .row2 { display:grid; grid-template-columns:1.5fr 1fr; gap:8px; margin:0 0 14px; text-align:start; }
+  .kn .skip { display:block; width:100%; border:0; background:none; color:#6b7378; font:inherit; font-size:15px; padding:12px; margin-top:4px; }
+  #confetti { position:fixed; inset:0; width:100%; height:100%; pointer-events:none; z-index:9; }
+  .row { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  .shutter { width:74px; height:74px; border-radius:50%; border:5px solid #fff; background:#fff3; flex:none; cursor:pointer; }
+  .shutter:active { background:#fff8; }
+  .side { flex:1; display:flex; justify-content:center; }
+  .side button { background:#fff2; color:#fff; border:0; border-radius:999px; padding:10px 14px; font-size:14px; font-weight:600; }
+  .side button.go { background:var(--blue); }
+  .auto { font-size:12px; opacity:.8; text-align:center; margin-top:8px; }
+  /* review */
+  .card { border:1px solid var(--line); border-radius:14px; padding:14px; margin-bottom:12px; }
+  .card h3 { margin:0 0 10px; font-size:15px; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  label.f { display:flex; flex-direction:column; gap:4px; font-size:12px; color:var(--muted); }
+  label.f input, label.f select { font:inherit; font-size:16px; color:var(--ink); border:1px solid var(--line); border-radius:10px; padding:10px; background:#fff; width:100%; }
+  .op { border-top:1px solid var(--line); padding-top:10px; margin-top:10px; }
+  .op .oh { display:flex; justify-content:space-between; align-items:center; font-weight:700; font-size:14px; margin-bottom:8px; }
+  .op .x { border:0; background:none; color:var(--muted); font-size:13px; }
+  .conf { display:inline-block; font-size:12px; padding:3px 8px; border-radius:999px; background:#f1f3f4; color:var(--ink); }
+  .conf.low { background:#fde8e8; color:var(--bad); }
+  .muted { color:var(--muted); font-size:13px; line-height:1.5; }
+  .spinner { width:42px; height:42px; border-radius:50%; border:4px solid #e3e6e8; border-top-color:var(--ink); animation:sp 0.9s linear infinite; margin:40px auto 16px; }
+  @keyframes sp { to { transform:rotate(360deg); } }
+  .done { text-align:center; padding-top:60px; }
+  .done .ok { width:70px; height:70px; border-radius:50%; background:var(--ok); color:#fff; display:grid; place-items:center; font-size:38px; margin:0 auto 18px; }
+  .xp { position:fixed; inset:0; z-index:20; background:#000a; display:flex; align-items:flex-end; justify-content:center; }
+  .xp[hidden] { display:none; }
+  .xp .xc { background:#fff; color:#111417; width:100%; max-width:480px; border-radius:20px 20px 0 0; padding:22px 20px max(22px, env(safe-area-inset-bottom)); text-align:center; }
+  .xp h2 { margin:0 0 8px; font-size:20px; }
+  .xp p { color:#6b7378; font-size:15px; line-height:1.5; margin:0 0 14px; }
+  .xp .wa { display:block; background:#25D366; color:#fff; text-decoration:none; border-radius:14px; padding:15px; font-size:17px; font-weight:700; }
+  .xp .wt { display:flex; gap:8px; align-items:center; justify-content:center; font-size:13px; color:#6b7378; margin-top:12px; }
+  .xp .dot { width:8px; height:8px; border-radius:50%; background:#f5b400; animation:xpb 1s infinite; }
+  @keyframes xpb { 50% { opacity:.2; } }
+</style>
+</head>
+<body>
+
+<!-- 1. start -->
+<section class="screen light" id="sStart">
+  <img class="logo" src="brand/logo.svg" alt="HISTORGIC">
+  <h1>צילום החדר</h1>
+  <p>8 תמונות בסיבוב אחד – והסצנה נבנית לפי החדר האמיתי.</p>
+  <ol class="steps">
+    <li><b>1</b><span>עמדו בערך באמצע החדר, מול הקיר שיהיה <strong>הקיר האחורי</strong> של הסצנה.</span></li>
+    <li><b>2</b><span>החזיקו את הטלפון זקוף, בגובה החזה, והסתובבו לאט <strong>ימינה</strong> במקום.</span></li>
+    <li><b>3</b><span>הטלפון מצלם לבד כל 45°. אפשר גם ללחוץ על כפתור הצילום.</span></li>
+    <li><b>4</b><span>למדידה מדויקת: <strong>הדליקו את כל האורות</strong>, ודאגו שבכל תמונה רואים את <strong>הפינה בין הקיר לרצפה</strong> – ודלת, אם יש.</span></li>
+  </ol>
+  <button class="btn" id="startBtn">התחלה</button>
+  <div class="err" id="startErr"></div>
+</section>
+
+<!-- 2. camera -->
+<section class="screen" id="cam" hidden>
+  <video id="vid" playsinline muted autoplay></video>
+  <div class="flash" id="flash"></div>
+  <div class="top"><div class="msg" id="camMsg">כוונו לקיר האחורי</div><div class="sub" id="camSub">תמונה 1 מתוך 8</div><div class="tip" id="camTip" hidden></div></div>
+  <div class="ring" id="ring" hidden><svg viewBox="0 0 150 150">
+    <circle cx="75" cy="75" r="62" fill="none" stroke="#ffffff55" stroke-width="3"/>
+    <g id="ticks"></g>
+    <g class="needle" id="needle"><path d="M75 8 L82 26 L68 26 Z" fill="#0088FF"/></g>
+    <circle cx="75" cy="75" r="6" fill="#fff"/>
+  </svg></div>
+  <div class="bottom">
+    <div class="thumbs" id="thumbs"></div>
+    <div class="upbar"><span id="upCount">0/8 עלו</span><span class="e" id="upErr"></span></div>
+    <div class="row">
+      <div class="side"><button id="cancelBtn">ביטול</button></div>
+      <button class="shutter" id="shutter" aria-label="צילום"></button>
+      <div class="side"><button id="nextBtn" class="go off">סיום ושליחה ›</button></div>
+    </div>
+    <div class="auto" id="autoTxt"></div>
+  </div>
+</section>
+
+<!-- 3. analysing -->
+<section class="screen light" id="sWait" hidden>
+  <div class="spinner"></div>
+  <p style="text-align:center" id="waitTxt">מנתח את החדר… (עד דקה)</p>
+</section>
+
+<!-- 4. review -->
+<section class="screen light" id="sReview" hidden>
+  <h1>זה החדר שזיהינו</h1>
+  <p id="rvStyle"></p>
+  <div class="card">
+    <h3>מידות <span class="conf" id="rvConf"></span></h3>
+    <div class="grid2">
+      <label class="f">רוחב – הקיר האחורי (מ')<input type="number" id="rvW" step="0.1" min="2" max="100" inputmode="decimal"></label>
+      <label class="f">עומק – הקירות בצדדים (מ')<input type="number" id="rvD" step="0.1" min="2" max="100" inputmode="decimal"></label>
+    </div>
+    <p class="muted" style="margin:10px 0 0">המידות הן הערכה לפי התמונות. אם אתם יודעים את המידות – תקנו כאן.</p>
+  </div>
+  <div class="card"><h3>דלתות וחלונות</h3><div id="rvOps"></div></div>
+  <div class="err" id="rvErr"></div>
+  <button class="btn" id="buildBtn">בנה את הסצנה במחשב</button>
+  <button class="btn sec" id="againBtn">לצלם שוב</button>
+</section>
+
+<!-- 5. done -->
+<section class="screen light" id="sDone" hidden>
+  <div class="done"><div class="ok">✓</div><h1>נשלח</h1><p>החדר נשלח לבניית הסצנה. תודה! אפשר לסגור את הדף.</p></div>
+  <canvas id="confetti"></canvas>
+</section>
+
+<div class="xp kn" id="knBox" hidden><div class="xc">
+  <h2>יודעים מידה אחת של החדר?</h2>
+  <p>מהתמונות לבד אפשר רק להעריך. מידה אחת אמיתית – והשאר יחושב לפיה.</p>
+  <div class="row2"><select id="knWhat"><option value="back">אורך הקיר האחורי</option><option value="side">אורך הקיר בצד</option><option value="height">גובה התקרה</option></select>
+  <input id="knM" type="number" inputmode="decimal" step="0.1" min="1" max="200" placeholder="מטרים"></div>
+  <button class="btn" id="knGo">המשך לניתוח</button>
+  <button class="skip" id="knSkip">לא יודעים – להעריך מהתמונות</button>
+</div></div>
+<div class="xp" id="xpBox" hidden><div class="xc">
+  <h2>הקישור פג תוקף</h2>
+  <p id="xpTxt">הקישור תקף לשעה. אפשר לבקש הארכה – ומה שכבר צילמתם נשמר.</p>
+  <a class="wa" id="xpWa" target="_blank" rel="noopener" hidden>בקשו הארכה בוואטסאפ</a>
+  <div class="wt"><span class="dot"></span><span id="xpWait">מחכים להארכה – הדף ימשיך לבד</span></div>
+</div></div>
+<script>
+const $ = (id) => document.getElementById(id);
+const SID = new URLSearchParams(location.search).get('s') || '';
+const N = 8, STEP = 360 / N;
+const WALLS = { back:'אחורי', right:'ימני', front:'קדמי', left:'שמאלי' };
+const TYPES = { door:{ single:'דלת רגילה', double:'דלת כפולה', sliding:'דלת הזזה מזכוכית', passage:'מעבר פתוח' }, window:{ std:'חלון רגיל', shop:'ויטרינה', high:'חלון גבוה צר' } };
+const AIM = ['כוונו לקיר האחורי', 'הפינה הימנית-אחורית', 'הקיר הימני', 'הפינה הימנית-קדמית', 'הקיר הקדמי (מאחוריכם בהתחלה)', 'הפינה השמאלית-קדמית', 'הקיר השמאלי', 'הפינה השמאלית-אחורית'];
+const shots = Array(N).fill(null);     // { url (preview), up: 'busy' | 'ok' | 'err' }
+let next = 0, stream = null, heading = null, h0 = null, holdT = 0, compass = false, result = null;
+
+function show(id) { for (const s of document.querySelectorAll('.screen')) s.hidden = s.id !== id; }
+async function api(a, body, type) {
+  const r = await fetch(`/api/scan?a=${a}&id=${encodeURIComponent(SID)}${a === 'photo' ? '&n=' + body.n : ''}`, {
+    method:'POST', headers:type ? { 'content-type':type } : { 'content-type':'application/json' },
+    body:a === 'photo' ? body.blob : JSON.stringify(body || {}) });
+  const j = await r.json().catch(() => ({}));
+  if (r.status === 410 && /פג תוקף/.test(j.error || '')) expiredBox();
+  if (!r.ok) throw new Error(j.error || `שגיאה ${r.status}`);
+  return j;
+}
+if (!/^[a-z0-9]{20}$/.test(SID)) { $('startBtn').disabled = true; $('startErr').textContent = 'הקישור לא שלם – סרקו שוב את הברקוד מהמחשב.'; }
+
+// ---------- start: camera + compass ----------
+// the compass: Android gives it right away; iPhone only after a tap (asked on the first tap of the shutter)
+const needsAsk = () => window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === 'function';
+let asked = false;
+// one source only (listening to both the absolute and the relative events made the needle jump between two frames), smoothed
+let cx = 0, cy = 0;
+function listenCompass() {
+  const on = (e) => {
+    if (e.alpha !== null && e.alpha !== undefined) got = true;
+    const h = e.alpha !== null && e.alpha !== undefined ? 360 - e.alpha : typeof e.webkitCompassHeading === 'number' ? e.webkitCompassHeading : null;
+    if (h === null || isNaN(h)) return;
+    const r = h * Math.PI / 180;
+    if (heading === null) { cx = Math.cos(r); cy = Math.sin(r); }
+    else { cx += (Math.cos(r) - cx) * 0.15; cy += (Math.sin(r) - cy) * 0.15; }
+    heading = (Math.atan2(cy, cx) * 180 / Math.PI + 360) % 360;
+  };
+  // the gyro-based (relative) event first: only the turning matters, and it does not shake near metal like the magnetic one
+  let got = false;
+  addEventListener('deviceorientation', on);
+  setTimeout(() => { if (!got && 'ondeviceorientationabsolute' in window) { removeEventListener('deviceorientation', on); heading = null; addEventListener('deviceorientationabsolute', on); } }, 1200);
+}
+async function askCompass() {
+  if (asked || !needsAsk()) return; asked = true;
+  try { compass = (await DeviceOrientationEvent.requestPermission()) === 'granted'; if (compass) listenCompass(); } catch { compass = false; }
+}
+async function startCamera(fromTap) {
+  $('startErr').textContent = '';
+  if (fromTap) await askCompass();
+  if (!needsAsk() && 'DeviceOrientationEvent' in window && !compass) { compass = true; listenCompass(); }
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:{ ideal:'environment' }, width:{ ideal:1920 }, height:{ ideal:1440 } }, audio:false });
+  } catch (e) { show('sStart'); $('startErr').textContent = fromTap ? 'אין גישה למצלמה. אשרו גישה למצלמה בהגדרות הדפדפן ונסו שוב.' : ''; return; }
+  $('vid').srcObject = stream; await $('vid').play().catch(() => {});
+  drawTicks(); renderThumbs(); show('cam'); requestAnimationFrame(loop);
+  setTimeout(() => { if (heading === null && !needsAsk()) { compass = false; $('ring').hidden = true; } }, 1500);
+}
+$('startBtn').onclick = () => startCamera(true);
+// straight into the camera when the page opens from the QR code (the start page shows only if the browser needs a tap first)
+// is the link still good? A shared link (sent to someone) starts on the explanation screen and shows how long it is valid
+if (/^[a-z0-9]{20}$/.test(SID)) {
+  show('sWait'); $('waitTxt').textContent = 'פותח את המצלמה…';
+  fetch(`/api/scan?a=check&id=${SID}`).then(r => r.json().then(j => ({ r, j }))).then(({ r, j }) => {
+    if (r.ok && !j.ok && j.share && j.status !== 'done' && j.status !== 'cancelled') { show('sStart'); expiredBox(); return; }
+    if (!r.ok || !j.ok) { show('sStart'); $('startBtn').disabled = true; $('startErr').textContent = !r.ok ? (j.error || 'הקישור לא נמצא') : j.status === 'done' ? 'הצילום כבר נשלח – תודה!' : 'הקישור פג תוקף או בוטל – בקשו קישור חדש.'; return; }
+    if (j.share) { show('sStart'); const m = Math.max(1, Math.round((j.exp - Date.now()) / 60000)); $('startErr').style.color = '#6b747c'; $('startErr').textContent = `הקישור תקף עוד ${m} דקות.`; return; }
+    startCamera(false);
+  }).catch(() => startCamera(false));
+}
+
+// ---------- the guide ring: where to turn, and auto capture when lined up ----------
+const diff = (a, b) => ((a - b + 540) % 360) - 180;
+function drawTicks() {
+  $('ticks').innerHTML = Array.from({ length:N }, (_, k) => { const a = (k * STEP - 90) * Math.PI / 180;
+    return `<circle id="tk${k}" cx="${75 + 62 * Math.cos(a)}" cy="${75 + 62 * Math.sin(a)}" r="6" fill="#ffffff55"/>`; }).join('');
+}
+function loop(t) {
+  if ($('cam').hidden) return;
+  const ready = compass && heading !== null;
+  $('ring').hidden = !ready;
+  for (let k = 0; k < N; k++) { const el = $('tk' + k); if (el) el.setAttribute('fill', shots[k] ? '#1aa66b' : k === next ? '#0088FF' : '#ffffff55'); }
+  if (next >= N) { $('autoTxt').textContent = 'כל 8 התמונות צולמו – לחצו "סיום ושליחה"'; requestAnimationFrame(loop); return; }
+  if (ready && h0 === null && shots[0]) h0 = heading;        // the compass arrived after the first photo (iPhone asks on that tap)
+  if (ready && h0 !== null) {
+    const want = (h0 + next * STEP) % 360, d = diff(heading, want);
+    $('needle').style.transform = `rotate(${(heading - h0 + 360) % 360}deg)`;
+    $('camSub').textContent = `תמונה ${next + 1} מתוך ${N} · ${Math.abs(d) < 8 ? 'מצוין – לא לזוז' : d < 0 ? 'המשיכו ימינה' : 'קצת חזרה שמאלה'}`;
+    if (Math.abs(d) < 7) { if (!holdT) holdT = t; else if (t - holdT > 450) { holdT = 0; capture(); } } else holdT = 0;
+    $('autoTxt').textContent = 'צילום אוטומטי לפי המצפן · אפשר גם ללחוץ';
+  } else {
+    $('camSub').textContent = `תמונה ${next + 1} מתוך ${N}`;
+    $('autoTxt').textContent = ready ? 'לחצו לצילום הראשון – משם הטלפון ממשיך לבד' : needsAsk() && !asked ? 'לחצו לצילום הראשון – הטלפון יבקש גישה למצפן, ומשם יצלם לבד' : 'אין מצפן – לחצו לצילום, ואז הסתובבו ⅛ סיבוב ימינה';
+  }
+  requestAnimationFrame(loop);
+}
+
+// ---------- capture + upload ----------
+let busy = false;
+async function capture() {
+  if (busy || next >= N) return; busy = true;
+  const v = $('vid'), k = next;
+  if (!v.videoWidth) {                                   // the camera has not delivered a frame yet: wait for it (max 2 s)
+    await new Promise(r => { const t = setTimeout(r, 2000); v.addEventListener('loadeddata', () => { clearTimeout(t); r(); }, { once:true }); v.play().catch(() => {}); });
+    if (!v.videoWidth) { busy = false; $('camMsg').textContent = 'המצלמה עוד לא מוכנה – נסו שוב'; return; }
+  }
+  const s = Math.min(1, 1600 / Math.max(v.videoWidth, v.videoHeight));
+  const c = document.createElement('canvas'); c.width = Math.round(v.videoWidth * s); c.height = Math.round(v.videoHeight * s);
+  c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
+  $('flash').classList.add('on'); setTimeout(() => $('flash').classList.remove('on'), 60);
+  navigator.vibrate && navigator.vibrate(40);
+  if (k === 0 && heading !== null) h0 = heading;
+  { const t = document.createElement('canvas'); t.width = 32; t.height = 24; const x = t.getContext('2d'); x.drawImage(c, 0, 0, 32, 24);
+    const d = x.getImageData(0, 0, 32, 24).data; let L = 0; for (let i = 0; i < d.length; i += 4) L += 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2];
+    L /= d.length / 4; $('camTip').hidden = L > 60; $('camTip').textContent = 'חשוך כאן – הדליקו אור, כדי שהמידות ייצאו מדויקות'; }
+  const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.82));
+  shots[k] = { url:URL.createObjectURL(blob), up:'busy', blob };
+  next = shots.findIndex(x => !x); if (next < 0) next = N;
+  renderThumbs(); busy = false;
+  upload(k);
+}
+let lastErr = '';
+async function upload(k) {
+  const sh = shots[k]; if (!sh) return;
+  for (let i = 0; i < 3; i++) {
+    try { await api('photo', { n:k, blob:sh.blob }, 'image/jpeg'); if (shots[k] === sh) sh.up = 'ok'; lastErr = ''; break; }
+    catch (e) { lastErr = e.message; if (shots[k] !== sh) return; if (i < 2 && !/פג תוקף|בוטל|לא נמצא/.test(e.message)) await new Promise(r => setTimeout(r, 1500)); else { sh.up = 'err'; break; } }
+  }
+  renderThumbs();
+}
+function renderThumbs() {
+  $('thumbs').innerHTML = shots.map((s, k) => `<button data-k="${k}" class="${k === next ? 'next' : ''} ${s ? (s.up === 'ok' ? 'up' : s.up === 'busy' ? 'busy' : 'err') : ''}" style="${s ? `background-image:url(${s.url})` : ''}">${s ? '' : k + 1}</button>`).join('');
+  $('thumbs').querySelectorAll('button').forEach(b => b.onclick = () => {
+    const k = +b.dataset.k;
+    if (shots[k] && shots[k].up === 'err') { shots[k].up = 'busy'; renderThumbs(); upload(k); return; }
+    next = k; holdT = 0; renderThumbs();                                 // retake this one
+  });
+  const ok = shots.filter(s => s && s.up === 'ok').length, bad = shots.filter(s => s && s.up === 'err').length, up = shots.filter(s => s && s.up === 'busy').length;
+  $('upCount').textContent = `${ok}/${N} עלו` + (up ? ` · ${up} עולות…` : '');
+  $('upErr').textContent = bad ? `${bad} לא עלו – לחצו על התמונה האדומה לנסות שוב` + (lastErr ? ` (${lastErr})` : '') : '';
+  $('nextBtn').classList.toggle('off', ok + up < 4);
+  $('nextBtn').classList.toggle('ready', next >= N && ok + up >= 4);
+  $('camMsg').textContent = next < N ? AIM[next] : 'כל התמונות צולמו';
+}
+$('shutter').onclick = async () => { holdT = 0; await capture(); if (needsAsk() && !asked) askCompass(); };
+$('cancelBtn').onclick = async () => { if (!confirm('לבטל את הצילום?')) return; stream && stream.getTracks().forEach(t => t.stop()); try { await api('cancel'); } catch {} show('sStart'); };
+
+// ---------- analysis ----------
+$('nextBtn').onclick = async () => {
+  const cnt = () => shots.filter(s => s && s.up === 'ok').length;
+  if (shots.some(s => s && s.up === 'busy')) {
+    show('sWait'); $('waitTxt').textContent = 'מסיים להעלות את התמונות…';
+    while (shots.some(s => s && s.up === 'busy')) await new Promise(r => setTimeout(r, 300));
+  }
+  if (cnt() < 4) { show('cam'); requestAnimationFrame(loop); alert(`צריך לפחות 4 תמונות שעלו בהצלחה – כרגע עלו ${cnt()}.` + (lastErr ? `\nהשגיאה: ${lastErr}` : '')); return; }
+  if (cnt() < N && !confirm(`עלו ${cnt()} מתוך ${N} תמונות. לשלוח בכל זאת?`)) return;
+  const known = await askKnown();
+  if (known === undefined) return;
+  show('sWait'); $('waitTxt').textContent = 'מנתח את החדר… (עד דקה)';
+  try {
+    const r = await api('analyze', known ? { known } : {}); result = r.result;
+    if (!result.ok) { alert(result.problem || 'לא הצלחנו להבין את החדר מהתמונות. נסו לצלם שוב באור טוב יותר.'); show('cam'); requestAnimationFrame(loop); return; }
+    stream && stream.getTracks().forEach(t => t.stop());
+    review();
+  } catch (e) { alert(e.message); show('cam'); requestAnimationFrame(loop); }
+};
+// one measurement the person knows (optional) → the AI scales the room by it
+function askKnown() {
+  return new Promise((res) => {
+    $('knBox').hidden = false; $('knM').value = '';
+    const done = (v) => { $('knBox').hidden = true; res(v); };
+    $('knSkip').onclick = () => done(null);
+    $('knGo').onclick = () => { const m = parseFloat(String($('knM').value).replace(',', '.'));
+      if (!$('knM').value) return done(null);
+      if (!(m > 1 && m < 200)) { $('knM').focus(); return; }
+      done({ what:$('knWhat').value, m }); };
+    $('knBox').onclick = (e) => { if (e.target === $('knBox')) done(undefined); };
+  });
+}
+function review() {
+  const r = result;
+  $('rvStyle').textContent = [r.style, r.floor, r.wall_color].filter(Boolean).join(' · ');
+  $('rvConf').textContent = { low:'הערכה גסה', medium:'הערכה סבירה', high:'הערכה טובה' }[r.confidence] || '';
+  $('rvConf').className = 'conf ' + r.confidence;
+  $('rvW').value = Math.round(r.width_m * 10) / 10; $('rvD').value = Math.round(r.depth_m * 10) / 10;
+  drawOps(); show('sReview');
+}
+function drawOps() {
+  const ops = result.openings || [];
+  const sel = (v, map, f) => `<select data-f="${f}">${Object.entries(map).map(([k, t]) => `<option value="${k}"${k === v ? ' selected' : ''}>${t}</option>`).join('')}</select>`;
+  $('rvOps').innerHTML = (ops.length ? '' : '<p class="muted">לא זוהו דלתות או חלונות. אפשר להוסיף אחר כך במחשב.</p>') + ops.map((o, i) => `<div class="op" data-i="${i}">
+    <div class="oh"><span>${TYPES[o.kind][o.type] || (o.kind === 'door' ? 'דלת' : 'חלון')} · קיר ${WALLS[o.wall]}</span><button class="x">הסרה</button></div>
+    <div class="grid2"><label class="f">סוג${sel(o.type, TYPES[o.kind], 'type')}</label><label class="f">קיר${sel(o.wall, WALLS, 'wall')}</label>
+    <label class="f">רוחב (ס"מ)<input type="number" data-f="width_cm" value="${Math.round(o.width_cm)}" inputmode="numeric"></label>
+    <label class="f">גובה (ס"מ)<input type="number" data-f="height_cm" value="${Math.round(o.height_cm)}" inputmode="numeric"></label></div></div>`).join('');
+  $('rvOps').querySelectorAll('.op').forEach(el => {
+    const o = ops[+el.dataset.i];
+    el.querySelector('.x').onclick = () => { ops.splice(+el.dataset.i, 1); drawOps(); };
+    el.querySelectorAll('[data-f]').forEach(f => f.onchange = () => { o[f.dataset.f] = f.type === 'number' ? +f.value : f.value; if (f.tagName === 'SELECT') drawOps(); });
+  });
+}
+$('buildBtn').onclick = async () => {
+  $('rvErr').textContent = '';
+  const w = +$('rvW').value, d = +$('rvD').value;
+  if (!(w >= 2 && w <= 100 && d >= 2 && d <= 100)) { $('rvErr').textContent = 'מידות החדר צריכות להיות בין 2 ל־100 מטר.'; return; }
+  result.width_m = w; result.depth_m = d;
+  $('buildBtn').disabled = true;
+  try { await api('confirm', { result }); show('sDone'); confetti(); navigator.vibrate && navigator.vibrate([60, 40, 60]); }
+  catch (e) { $('rvErr').textContent = e.message; $('buildBtn').disabled = false; }
+};
+$('againBtn').onclick = () => location.reload();
+function confetti() {
+  const c = $('confetti'), x = c.getContext('2d'), W = c.width = innerWidth * devicePixelRatio, H = c.height = innerHeight * devicePixelRatio;
+  const col = ['#0088FF', '#1aa66b', '#f5b400', '#ff4d6d', '#8a5cff', '#ff8a00'];
+  const P = Array.from({ length:160 }, () => ({ x:W / 2, y:H * 0.35, vx:(Math.random() - 0.5) * W * 0.03, vy:-Math.random() * H * 0.025 - H * 0.005,
+    w:(6 + Math.random() * 8) * devicePixelRatio, h:(4 + Math.random() * 6) * devicePixelRatio, r:Math.random() * 6, vr:(Math.random() - 0.5) * 0.3, c:col[Math.random() * col.length | 0] }));
+  const t0 = performance.now();
+  (function f(t) {
+    x.clearRect(0, 0, W, H);
+    for (const p of P) { p.vy += H * 0.0006; p.vx *= 0.99; p.x += p.vx; p.y += p.vy; p.r += p.vr;
+      x.save(); x.translate(p.x, p.y); x.rotate(p.r); x.fillStyle = p.c; x.fillRect(-p.w / 2, -p.h / 2, p.w, p.h); x.restore(); }
+    if (t - t0 < 4000) requestAnimationFrame(f); else x.clearRect(0, 0, W, H);
+  })(t0);
+}
+
+// ---------- the link expired: ask the agent for more time (WhatsApp), wait, and carry on with the same link ----------
+let xpOn = false;
+async function expiredBox() {
+  if (xpOn) return; xpOn = true; $('xpBox').hidden = false;
+  let j = {};
+  try { j = await (await fetch(`/api/scan?a=ask&id=${SID}`, { method:'POST', headers:{ 'content-type':'application/json' }, body:'{}' })).json(); } catch {}
+  if (j.wa) {
+    const link = `${location.origin}/?extend=room.${SID}`;
+    const msg = `היי${j.by ? ' ' + j.by : ''}, הקישור לצילום החדר פג תוקף. אפשר להאריך? לחיצה כאן מאריכה אותו:\n${link}`;
+    $('xpWa').href = `https://wa.me/${j.wa}?text=${encodeURIComponent(msg)}`; $('xpWa').hidden = false;
+    $('xpTxt').textContent = 'לחצו לשלוח בקשה בוואטסאפ, וכשיאריכו – הדף ימשיך לבד. מה שכבר צילמתם נשמר.';
+  } else $('xpTxt').textContent = 'בקשת הארכה נשלחה למי ששלח לכם את הקישור. אפשר גם לפנות אליו ישירות. מה שכבר צילמתם נשמר.';
+  const t = setInterval(async () => {
+    try { const c = await (await fetch(`/api/scan?a=check&id=${SID}`)).json();
+      if (c.ok) { clearInterval(t); xpOn = false; $('xpBox').hidden = true; shots.forEach((s, k) => { if (s && s.up === 'err') { s.up = 'busy'; upload(k); } }); lastErr = ''; renderThumbs(); }
+      else if (c.status === 'done' || c.status === 'cancelled') { clearInterval(t); $('xpWa').hidden = true; $('xpWait').textContent = c.status === 'done' ? 'כבר נשלח – תודה!' : 'הצילום בוטל.'; }
+    } catch {}
+  }, 4000);
+}
+</script>
+</body>
+</html>
